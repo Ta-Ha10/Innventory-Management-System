@@ -121,10 +121,14 @@ class _InventoryPageState extends State<InventoryPage>
   int _parseQuantity(dynamic raw) {
     if (raw == null) return 0;
     if (raw is int) return raw;
-    if (raw is double) return raw.toInt();
+    if (raw is double) return raw.round(); // Round to nearest integer
     final s = raw.toString();
-    final parsed = int.tryParse(s) ?? (double.tryParse(s)?.toInt());
-    return parsed ?? 0;
+    // Try parsing as double first, then round to integer
+    final doubleVal = double.tryParse(s);
+    if (doubleVal != null) return doubleVal.round();
+    // Try parsing as integer if double parsing failed
+    final intVal = int.tryParse(s);
+    return intVal ?? 0;
   }
 
   Future<void> _saveItem() async {
@@ -137,11 +141,12 @@ class _InventoryPageState extends State<InventoryPage>
 
     try {
       final id = _selectedItemId!;
-      final priceText = _priceController.text.replaceAll(RegExp(r'[^0-9.]'), '');
+      // Clean and parse price
+      final priceText = _priceController.text.trim();
       final price = double.tryParse(priceText);
       if (price == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid price format')),
+          const SnackBar(content: Text('Please enter a valid number for price')),
         );
         return;
       }
@@ -149,12 +154,19 @@ class _InventoryPageState extends State<InventoryPage>
 
       // Parse and validate quantity
       final quantityText = _quantityController.text.trim();
-      final quantity = int.tryParse(quantityText);
-      if (quantityText.isNotEmpty && quantity == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid quantity format')),
-        );
-        return;
+      int? quantity;
+      if (quantityText.isNotEmpty) {
+        // Try parsing as double first
+        final doubleVal = double.tryParse(quantityText);
+        if (doubleVal != null) {
+          quantity = doubleVal.round();
+        } else {
+          // If not a valid number, show error
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Please enter a valid number for quantity')),
+          );
+          return;
+        }
       }
 
       final data = {
@@ -187,11 +199,12 @@ class _InventoryPageState extends State<InventoryPage>
   }
 
   Future<void> _saveNewItem() async {
-    final priceText = _addPriceController.text.replaceAll(RegExp(r'[^0-9.]'), '');
+    // Clean and parse price
+    final priceText = _addPriceController.text.trim();
     final price = double.tryParse(priceText);
     if (price == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid price format')),
+        const SnackBar(content: Text('Please enter a valid number for price')),
       );
       return;
     }
@@ -199,12 +212,19 @@ class _InventoryPageState extends State<InventoryPage>
 
     // Parse and validate quantity
     final quantityText = _addQuantityController.text.trim();
-    final quantity = quantityText.isNotEmpty ? int.tryParse(quantityText) : 0;
-    if (quantityText.isNotEmpty && quantity == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid quantity format')),
-      );
-      return;
+    int quantity = 0; // Default to 0 for new items
+    if (quantityText.isNotEmpty) {
+      // Try parsing as double first
+      final doubleVal = double.tryParse(quantityText);
+      if (doubleVal != null) {
+        quantity = doubleVal.round();
+      } else {
+        // If not a valid number, show error
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter a valid number for quantity')),
+        );
+        return;
+      }
     }
 
     final data = {
@@ -303,8 +323,14 @@ class _InventoryPageState extends State<InventoryPage>
                   Expanded(
                     child: TextField(
                       controller: _quantityController,
-                      decoration: const InputDecoration(labelText: 'Quantity'),
-                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Quantity',
+                        hintText: 'Enter amount (e.g., 5 or 5.5)',
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                        signed: false,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -330,12 +356,14 @@ class _InventoryPageState extends State<InventoryPage>
                     decoration: InputDecoration(
                       labelText:
                           'Price/${unit.text.isNotEmpty ? unit.text : "unit"}',
+                      hintText: 'Enter price (e.g., 12.50)',
                       suffixText: _unitController.text.isNotEmpty
                           ? '/${_unitController.text}'
                           : '/unit',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
+                      signed: false,
                     ),
                   );
                 },
@@ -405,8 +433,14 @@ class _InventoryPageState extends State<InventoryPage>
                   Expanded(
                     child: TextField(
                       controller: _addQuantityController,
-                      decoration: const InputDecoration(labelText: 'Quantity'),
-                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Quantity',
+                        hintText: 'Enter amount (e.g., 5 or 5.5)',
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                        signed: false,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -432,12 +466,14 @@ class _InventoryPageState extends State<InventoryPage>
                     decoration: InputDecoration(
                       labelText:
                           'Price/${unit.text.isNotEmpty ? unit.text : "unit"}',
+                      hintText: 'Enter price (e.g., 12.50)',
                       suffixText: _addUnitController.text.isNotEmpty
                           ? '/${_addUnitController.text}'
                           : '/unit',
                     ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
+                      signed: false,
                     ),
                   );
                 },
