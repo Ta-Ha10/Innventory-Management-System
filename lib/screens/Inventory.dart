@@ -1,6 +1,8 @@
 // screens/Inventory.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:math' show max, min;
 
 import '../widget/side_bar.dart';
 
@@ -18,17 +20,10 @@ class _InventoryPageState extends State<InventoryPage>
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _sidebarVisible = true;
 
-  final List<String> tabs = [
+  // Dynamic categories list (always includes 'All')
+  final ValueNotifier<List<String>> categories = ValueNotifier<List<String>>([
     'All',
-    'Meat / Poultry / Seafood',
-    'Vegetables & Fruits',
-    'Dairy',
-    'Gluten-Containing',
-    'Egg-Based',
-    'Fats / Oils',
-    'Spices / Seasonings',
-    'Beverages',
-  ];
+  ]);
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -60,185 +55,193 @@ class _InventoryPageState extends State<InventoryPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: tabs.length, vsync: this);
-    _selectedTabIndex = ValueNotifier<int>(_tabController.index);
+    _tabController = TabController(
+      length: max(1, categories.value.length),
+      vsync: this,
+    );
+    _selectedTabIndex = ValueNotifier<int>(0);
     _tabController.addListener(() {
-      _selectedTabIndex.value = _tabController.index;
+      if (_tabController.index != _selectedTabIndex.value) {
+        _selectedTabIndex.value = _tabController.index;
+      }
     });
+
+    // Make text controllers listenable for price/unit updates
+    _unitController.addListener(() => setState(() {}));
+    _addUnitController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
-    _searchController.dispose();
-    _nameController.dispose();
-    _categoryController.dispose();
-    _quantityController.dispose();
-    _unitController.dispose();
-    _supplierController.dispose();
-    _priceController.dispose();
-    _addNameController.dispose();
-    _addCategoryController.dispose();
-    _addQuantityController.dispose();
-    _addUnitController.dispose();
-    _addSupplierController.dispose();
-    _addPriceController.dispose();
+    _unitController.removeListener(() => setState(() {}));
+    _addUnitController.removeListener(() => setState(() {}));
     super.dispose();
   }
 
-  void _onSearchChanged(String query) {
-  _searchQuery = query.toLowerCase();
-  _selectedTabIndex.value = _selectedTabIndex.value;
+  void _onSidebarSelect(String category) {
+    // Find tab index matching category (normalize comparison)
+    final norm = category
+        .toLowerCase()
+        .replaceAll(RegExp(r"\s+|_|-|/|&"), ' ')
+        .trim();
+    final idx = categories.value.indexWhere(
+      (t) =>
+          t.toLowerCase().replaceAll(RegExp(r"\s+|_|-|/|&"), ' ').trim() ==
+          norm,
+    );
+    if (idx >= 0) {
+      _tabController.animateTo(idx);
+      _selectedTabIndex.value = idx;
+    } else {
+      // add new category and select it
+      final newList = [...categories.value, category]..sort();
+      categories.value = newList;
+      final newIndex = newList.indexOf(category);
+
+      // Safely dispose and recreate tab controller
+      final oldController = _tabController;
+      _tabController = TabController(
+        length: newList.length,
+        vsync: this,
+        initialIndex: min(newIndex, newList.length - 1),
+      );
+      oldController.dispose();
+
+      _selectedTabIndex.value = _tabController.index;
+      setState(() {});
+    }
   }
 
-  void _onSidebarSelect(String category) {
-    final idx = tabs.indexWhere(
-        (t) => t.toLowerCase() == category.toLowerCase());
-    if (idx != -1) _tabController.animateTo(idx);
-    else _tabController.animateTo(0);
+  void _onSearchChanged(String v) {
+    setState(() {
+      _searchQuery = v.toLowerCase();
+    });
   }
 
   int _parseQuantity(dynamic raw) {
     if (raw == null) return 0;
     if (raw is int) return raw;
     if (raw is double) return raw.toInt();
-    final i = int.tryParse(raw.toString());
-    if (i != null) return i;
-    final d = double.tryParse(raw.toString());
-    if (d != null) return d.toInt();
-    return 0;
+    final s = raw.toString();
+    final parsed = int.tryParse(s) ?? (double.tryParse(s)?.toInt());
+    return parsed ?? 0;
   }
 
   Future<void> _saveItem() async {
-    final name = _nameController.text.trim();
-    final category = _categoryController.text.trim();
-    final quantity = int.tryParse(_quantityController.text.trim()) ?? 0;
-    final unit = _unitController.text.trim();
-    final supplier = _supplierController.text.trim();
-    final priceRaw = _priceController.text.trim();
-    final price = double.tryParse(priceRaw) ?? priceRaw;
-
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Name is required')));
+    if (_selectedItemId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No item selected')));
       return;
     }
 
-    final collection = FirebaseFirestore.instance.collection('raw_components');
     try {
-      if (_selectedItemId != null) {
-        final id = _selectedItemId!;
-        _localDocs[id] = {
-          ...?_localDocs[id],
-          'id': id,
-          'name': name,
-          'category': category,
-          'quantity': quantity,
-          'unit': unit,
-          'supplier': supplier,
-          'price': price,
-        };
-  _selectedTabIndex.value = _selectedTabIndex.value;
-
-        await collection.doc(id).update({
-          'name': name,
-          'category': category,
-          'quantity': quantity,
-          'unit': unit,
-          'supplier': supplier,
-          'price': price,
-        });
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Item updated')));
-      } else {
-        final tempId = 'local_${DateTime.now().millisecondsSinceEpoch}';
-        _localDocs[tempId] = {
-          'id': tempId,
-          'name': name,
-          'category': category,
-          'quantity': quantity,
-          'unit': unit,
-          'supplier': supplier,
-          'price': price,
-        };
-  _selectedItemId = tempId;
-  _selectedTabIndex.value = _selectedTabIndex.value;
-
-        final docRef = await collection.add({
-          'name': name,
-          'category': category,
-          'quantity': quantity,
-          'unit': unit,
-          'supplier': supplier,
-          'price': price,
-        });
-
-        if (mounted) {
-          final realId = docRef.id;
-          final data = {...?_localDocs[tempId], 'id': realId};
-          _localDocs.remove(tempId);
-          _localDocs[realId] = data;
-          _selectedItemId = realId;
-          _selectedTabIndex.value = _selectedTabIndex.value;
-        }
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Item added')));
+      final id = _selectedItemId!;
+      final priceText = _priceController.text.replaceAll(RegExp(r'[^0-9.]'), '');
+      final price = double.tryParse(priceText);
+      if (price == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid price format')),
+        );
+        return;
       }
+      final unit = _unitController.text.trim();
+
+      // Parse and validate quantity
+      final quantityText = _quantityController.text.trim();
+      final quantity = int.tryParse(quantityText);
+      if (quantityText.isNotEmpty && quantity == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid quantity format')),
+        );
+        return;
+      }
+
+      final data = {
+        'name': _nameController.text.trim(),
+        'category': _categoryController.text.trim(),
+        'quantity': quantity ?? _parseQuantity(_localDocs[id]?['quantity'] ?? 0), // Keep existing quantity if not changed
+        'unit': unit,
+        'supplier': _supplierController.text.trim(),
+        'price': price, // Store as double
+        'pricePerUnit': '$price/$unit', // Store formatted string
+      };
+
+      // optimistic local update
+      _localDocs[id] = {...data, 'id': id};
+      setState(() {});
+
+      await FirebaseFirestore.instance
+          .collection('raw_components')
+          .doc(id)
+          .update(data);
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Item saved')));
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
     }
   }
 
   Future<void> _saveNewItem() async {
-    final name = _addNameController.text.trim();
-    final category = _addCategoryController.text.trim();
-    final quantity = int.tryParse(_addQuantityController.text.trim()) ?? 0;
+    final priceText = _addPriceController.text.replaceAll(RegExp(r'[^0-9.]'), '');
+    final price = double.tryParse(priceText);
+    if (price == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid price format')),
+      );
+      return;
+    }
     final unit = _addUnitController.text.trim();
-    final supplier = _addSupplierController.text.trim();
-    final priceRaw = _addPriceController.text.trim();
-    final price = double.tryParse(priceRaw) ?? priceRaw;
 
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name is required')));
+    // Parse and validate quantity
+    final quantityText = _addQuantityController.text.trim();
+    final quantity = quantityText.isNotEmpty ? int.tryParse(quantityText) : 0;
+    if (quantityText.isNotEmpty && quantity == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid quantity format')),
+      );
       return;
     }
 
-    final collection = FirebaseFirestore.instance.collection('raw_components');
+    final data = {
+      'name': _addNameController.text.trim(),
+      'category': _addCategoryController.text.trim(),
+      'quantity': quantity,
+      'unit': unit,
+      'supplier': _addSupplierController.text.trim(),
+      'price': price, // Store as double
+      'pricePerUnit': '$price/$unit', // Store formatted string
+    };
+    final tempId = 'local_${DateTime.now().millisecondsSinceEpoch}';
+    _localDocs[tempId] = {...data, 'id': tempId};
+    setState(() {});
+
     try {
-      final tempId = 'local_${DateTime.now().millisecondsSinceEpoch}';
-      _localDocs[tempId] = {
-        'id': tempId,
-        'name': name,
-        'category': category,
-        'quantity': quantity,
-        'unit': unit,
-        'supplier': supplier,
-        'price': price,
-      };
+      final ref = await FirebaseFirestore.instance
+          .collection('raw_components')
+          .add(data);
+      final realId = ref.id;
+
+      final stored = {...?_localDocs[tempId], 'id': realId};
+      _localDocs.remove(tempId);
+      _localDocs[realId] = stored;
       setState(() {});
 
-      final docRef = await collection.add({
-        'name': name,
-        'category': category,
-        'quantity': quantity,
-        'unit': unit,
-        'supplier': supplier,
-        'price': price,
-      });
-
-      if (mounted) {
-        final realId = docRef.id;
-        final data = {...?_localDocs[tempId], 'id': realId};
-        _localDocs.remove(tempId);
-        _localDocs[realId] = data;
-        setState(() {});
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item added')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Item added')));
       _clearAddForm();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Add failed: $e')));
+      // remove temp local doc on failure
+      _localDocs.remove(tempId);
+      setState(() {});
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Add failed: $e')));
     }
   }
 
@@ -252,20 +255,20 @@ class _InventoryPageState extends State<InventoryPage>
   }
 
   void _clearSelection() {
-  _selectedItemId = null;
+    _selectedItemId = null;
     _nameController.clear();
     _categoryController.clear();
     _quantityController.clear();
     _unitController.clear();
     _supplierController.clear();
     _priceController.clear();
-  _selectedTabIndex.value = _selectedTabIndex.value;
+    _selectedTabIndex.value = _selectedTabIndex.value;
   }
 
   Widget editPanel() {
     return SizedBox(
       width: 420,
-      
+
       child: Card(
         color: const Color.fromARGB(255, 241, 239, 239),
         margin: EdgeInsets.zero,
@@ -274,42 +277,90 @@ class _InventoryPageState extends State<InventoryPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Edit Item',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text(
+                'Edit Item',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               const SizedBox(height: 8),
-              TextField(controller: _nameController, decoration: const InputDecoration(labelText: 'Name')),
+              TextField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _categoryController.text.isEmpty ? null : _categoryController.text,
-                items: tabs.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                value: _categoryController.text.isEmpty
+                    ? null
+                    : _categoryController.text,
+                items: categories.value
+                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                    .toList(),
                 onChanged: (v) => _categoryController.text = v ?? '',
                 decoration: const InputDecoration(labelText: 'Category'),
               ),
               const SizedBox(height: 8),
-              Row(children: [
-                Expanded(child: TextField(controller: _quantityController, decoration: const InputDecoration(labelText: 'Quantity'), keyboardType: TextInputType.number)),
-                const SizedBox(width: 8),
-                Expanded(child: TextField(controller: _unitController, decoration: const InputDecoration(labelText: 'Unit'))),
-              ]),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _quantityController,
+                      decoration: const InputDecoration(labelText: 'Quantity'),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _unitController,
+                      decoration: const InputDecoration(labelText: 'Unit'),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
-              TextField(controller: _supplierController, decoration: const InputDecoration(labelText: 'Supplier')),
+              TextField(
+                controller: _supplierController,
+                decoration: const InputDecoration(labelText: 'Supplier'),
+              ),
               const SizedBox(height: 8),
-              TextField(controller: _priceController, decoration: const InputDecoration(labelText: 'Price'), keyboardType: const TextInputType.numberWithOptions(decimal: true)),
+              ValueListenableBuilder(
+                valueListenable: _unitController,
+                builder: (context, unit, _) {
+                  return TextField(
+                    controller: _priceController,
+                    decoration: InputDecoration(
+                      labelText:
+                          'Price/${unit.text.isNotEmpty ? unit.text : "unit"}',
+                      suffixText: _unitController.text.isNotEmpty
+                          ? '/${_unitController.text}'
+                          : '/unit',
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 12),
-              Row(children: [
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(backgroundColor: secondaryColor),
-                  onPressed: _saveItem,
-                  icon: const Icon(Icons.save),
-                  label: const Text('Save'),
-                ),
-                const SizedBox(width: 8),
-                OutlinedButton(
-                  onPressed: _clearSelection,
-                  child: const Text('Clear'),
-                  style: OutlinedButton.styleFrom(foregroundColor: primaryColor),
-                ),
-              ]),
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: secondaryColor,
+                    ),
+                    onPressed: _saveItem,
+                    icon: const Icon(Icons.save),
+                    label: const Text('Save'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: _clearSelection,
+                    child: const Text('Clear'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: primaryColor,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -328,32 +379,84 @@ class _InventoryPageState extends State<InventoryPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Add Item', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text(
+                'Add Item',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
               const SizedBox(height: 8),
-              TextField(controller: _addNameController, decoration: const InputDecoration(labelText: 'Name')),
+              TextField(
+                controller: _addNameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _addCategoryController.text.isEmpty ? null : _addCategoryController.text,
-                items: tabs.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+                value: _addCategoryController.text.isEmpty
+                    ? null
+                    : _addCategoryController.text,
+                items: categories.value
+                    .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                    .toList(),
                 onChanged: (v) => _addCategoryController.text = v ?? '',
                 decoration: const InputDecoration(labelText: 'Category'),
               ),
               const SizedBox(height: 8),
-              Row(children: [
-                Expanded(child: TextField(controller: _addQuantityController, decoration: const InputDecoration(labelText: 'Quantity'), keyboardType: TextInputType.number)),
-                const SizedBox(width: 8),
-                Expanded(child: TextField(controller: _addUnitController, decoration: const InputDecoration(labelText: 'Unit'))),
-              ]),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _addQuantityController,
+                      decoration: const InputDecoration(labelText: 'Quantity'),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextField(
+                      controller: _addUnitController,
+                      decoration: const InputDecoration(labelText: 'Unit'),
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 8),
-              TextField(controller: _addSupplierController, decoration: const InputDecoration(labelText: 'Supplier')),
+              TextField(
+                controller: _addSupplierController,
+                decoration: const InputDecoration(labelText: 'Supplier'),
+              ),
               const SizedBox(height: 8),
-              TextField(controller: _addPriceController, decoration: const InputDecoration(labelText: 'Price'), keyboardType: const TextInputType.numberWithOptions(decimal: true)),
+              ValueListenableBuilder(
+                valueListenable: _addUnitController,
+                builder: (context, unit, _) {
+                  return TextField(
+                    controller: _addPriceController,
+                    decoration: InputDecoration(
+                      labelText:
+                          'Price/${unit.text.isNotEmpty ? unit.text : "unit"}',
+                      suffixText: _addUnitController.text.isNotEmpty
+                          ? '/${_addUnitController.text}'
+                          : '/unit',
+                    ),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 12),
-              Row(children: [
-                ElevatedButton.icon(onPressed: _saveNewItem, icon: const Icon(Icons.add), label: const Text('Add')),
-                const SizedBox(width: 8),
-                OutlinedButton(onPressed: _clearAddForm, child: const Text('Clear')),
-              ]),
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _saveNewItem,
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add'),
+                  ),
+                  const SizedBox(width: 8),
+                  OutlinedButton(
+                    onPressed: _clearAddForm,
+                    child: const Text('Clear'),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -370,14 +473,26 @@ class _InventoryPageState extends State<InventoryPage>
 
     return Scaffold(
       key: _scaffoldKey,
-      drawer: isMobile ? Drawer(child: SideBar(onCategorySelect: _onSidebarSelect)) : null,
+      drawer: isMobile
+          ? Drawer(
+              child: SideBar(
+                currentPage: 'Inventory',
+                onCategorySelect: _onSidebarSelect,
+              ),
+            )
+          : null,
       backgroundColor: const Color(0xFFF9F9F9),
       body: Row(
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             width: _sidebarVisible ? sidebarWidth : 0,
-            child: _sidebarVisible ? SideBar(onCategorySelect: _onSidebarSelect) : const SizedBox.shrink(),
+            child: _sidebarVisible
+                ? SideBar(
+                    currentPage: 'Inventory',
+                    onCategorySelect: _onSidebarSelect,
+                  )
+                : const SizedBox.shrink(),
           ),
           Expanded(
             child: Padding(
@@ -390,45 +505,27 @@ class _InventoryPageState extends State<InventoryPage>
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        icon: Icon(_sidebarVisible ? Icons.menu_open : Icons.menu, color: primaryColor),
+                        icon: Icon(
+                          _sidebarVisible ? Icons.menu_open : Icons.menu,
+                          color: primaryColor,
+                        ),
                         onPressed: () {
-                          if (isMobile) _scaffoldKey.currentState?.openDrawer();
-                          else setState(() => _sidebarVisible = !_sidebarVisible);
+                          if (isMobile)
+                            _scaffoldKey.currentState?.openDrawer();
+                          else
+                            setState(() => _sidebarVisible = !_sidebarVisible);
                         },
                       ),
-                      Text('Inventory', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: primaryColor)),
+                      Text(
+                        'Inventory',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 24,
+                          color: primaryColor,
+                        ),
+                      ),
                       const SizedBox(width: 48),
                     ],
-                  ),
-
-                  // Tabs
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Center(
-                          child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: List.generate(tabs.length, (i) {
-                          final selected = _tabController.index == i;
-                          return InkWell(
-                            onTap: () {
-                              _tabController.animateTo(i);
-                              _selectedTabIndex.value = i;
-                            },
-                            borderRadius: BorderRadius.circular(20),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-                              decoration: BoxDecoration(
-                                color: selected ? secondaryColor : Colors.transparent,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: selected ? secondaryColor : Colors.grey.shade300),
-                              ),
-                              child: Text(tabs[i], style: TextStyle(color: selected ? Colors.white : primaryColor, fontWeight: selected ? FontWeight.w600 : FontWeight.w400)),
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
                   ),
 
                   // Search
@@ -440,10 +537,68 @@ class _InventoryPageState extends State<InventoryPage>
                       decoration: InputDecoration(
                         hintText: 'Search by name or category...',
                         prefixIcon: const Icon(Icons.search),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         filled: true,
                         fillColor: Colors.white,
                       ),
+                    ),
+                  ),
+
+                  // Categories list (horizontal pills)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: ValueListenableBuilder<List<String>>(
+                      valueListenable: categories,
+                      builder: (context, categoryList, _) {
+                        return SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: List.generate(categoryList.length, (i) {
+                              final selected = _tabController.index == i;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: InkWell(
+                                  onTap: () {
+                                    _tabController.animateTo(i);
+                                    _selectedTabIndex.value = i;
+                                  },
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: selected
+                                          ? secondaryColor
+                                          : Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: selected
+                                            ? secondaryColor
+                                            : Colors.grey.shade300,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      categoryList[i],
+                                      style: TextStyle(
+                                        color: selected
+                                            ? Colors.white
+                                            : primaryColor,
+                                        fontWeight: selected
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                        );
+                      },
                     ),
                   ),
 
@@ -452,62 +607,131 @@ class _InventoryPageState extends State<InventoryPage>
                     child: ValueListenableBuilder<int>(
                       valueListenable: _selectedTabIndex,
                       builder: (context, selectedIndex, _) {
-                        return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                        return StreamBuilder<
+                          QuerySnapshot<Map<String, dynamic>>
+                        >(
                           stream: _rawStream,
                           builder: (context, snapshot) {
                             final allDocs = snapshot.data?.docs ?? [];
-                            final firestoreDocs = {for (var d in allDocs) d.id: {...d.data(), 'id': d.id}};
+                            final firestoreDocs = {
+                              for (var d in allDocs)
+                                d.id: {...d.data(), 'id': d.id},
+                            };
                             final merged = {...firestoreDocs, ..._localDocs};
-                            List<Map<String, dynamic>> filteredDocs = merged.values.toList();
+                            List<Map<String, dynamic>> filteredDocs = merged
+                                .values
+                                .toList();
 
-                            if (selectedIndex > 0 && selectedIndex < tabs.length) {
-                              final normSelected = tabs[selectedIndex].toLowerCase().replaceAll(RegExp(r"\s+|_|-|/|&"), ' ').trim();
+                            // Update categories without triggering a build
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              final uniqueCategories = {'All'};
+                              for (final doc in filteredDocs) {
+                                final category = (doc['category'] ?? '')
+                                    .toString();
+                                if (category.isNotEmpty)
+                                  uniqueCategories.add(category);
+                              }
+                              final newCategories = uniqueCategories.toList()
+                                ..sort();
+                              if (!listEquals(
+                                categories.value,
+                                newCategories,
+                              )) {
+                                categories.value = newCategories;
+                              }
+                            });
+                            if (selectedIndex > 0 &&
+                                selectedIndex < categories.value.length) {
+                              final normSelected = categories
+                                  .value[selectedIndex]
+                                  .toLowerCase()
+                                  .replaceAll(RegExp(r"\s+|_|-|/|&"), ' ')
+                                  .trim();
                               filteredDocs = filteredDocs.where((data) {
-                                final rawCat = (data['category'] ?? '').toString();
-                                final normRaw = rawCat.toLowerCase().replaceAll(RegExp(r"\s+|_|-|/|&"), ' ').trim();
+                                final rawCat = (data['category'] ?? '')
+                                    .toString();
+                                final normRaw = rawCat
+                                    .toLowerCase()
+                                    .replaceAll(RegExp(r"\s+|_|-|/|&"), ' ')
+                                    .trim();
                                 return normRaw == normSelected;
                               }).toList();
                             }
 
                             if (_searchQuery.isNotEmpty) {
                               filteredDocs = filteredDocs.where((item) {
-                                final name = (item['name'] ?? '').toString().toLowerCase();
-                                final category = (item['category'] ?? '').toString().toLowerCase();
-                                return name.contains(_searchQuery) || category.contains(_searchQuery);
+                                final name = (item['name'] ?? '')
+                                    .toString()
+                                    .toLowerCase();
+                                final category = (item['category'] ?? '')
+                                    .toString()
+                                    .toLowerCase();
+                                return name.contains(_searchQuery) ||
+                                    category.contains(_searchQuery);
                               }).toList();
                             }
 
-                            if (filteredDocs.isEmpty) return const Center(child: Text('No items found.'));
+                            if (filteredDocs.isEmpty)
+                              return const Center(
+                                child: Text('No items found.'),
+                              );
 
                             final dataRows = filteredDocs.map((item) {
                               final id = item['id']?.toString();
                               final displayed = {...item};
-                              final quantityInt = _parseQuantity(displayed['quantity']);
+                              final quantityInt = _parseQuantity(
+                                displayed['quantity'],
+                              );
                               return DataRow(
                                 selected: _selectedItemId == id,
                                 cells: [
                                   DataCell(Text(displayed['category'] ?? '')),
                                   DataCell(Text(displayed['name'] ?? '')),
-                                  DataCell(Text(displayed['quantity']?.toString() ?? '')),
+                                  DataCell(
+                                    Text(
+                                      displayed['quantity']?.toString() ?? '',
+                                    ),
+                                  ),
                                   DataCell(Text(displayed['unit'] ?? '')),
                                   DataCell(Text(displayed['supplier'] ?? '')),
-                                  DataCell(Text(displayed['price']?.toString() ?? '')),
+                                  DataCell(
+                                    Text(
+                                      displayed['price'] != null 
+                                        ? '\$${(displayed['price'] is num 
+                                            ? (displayed['price'] as num).toStringAsFixed(2) 
+                                            : double.tryParse(displayed['price'].toString())?.toStringAsFixed(2) ?? '0.00')}/${displayed['unit'] ?? 'unit'}'
+                                        : '\$0.00/${displayed['unit'] ?? 'unit'}',
+                                    ),
+                                  ),
                                   DataCell(
                                     CircleAvatar(
                                       radius: 8,
-                                      backgroundColor: quantityInt <= 5 ? Colors.red : (quantityInt <= 10 ? Colors.yellow[700] : Colors.green),
+                                      backgroundColor: quantityInt <= 5
+                                          ? Colors.red
+                                          : (quantityInt <= 10
+                                                ? Colors.yellow[700]
+                                                : Colors.green),
                                     ),
                                   ),
                                 ],
                                 onSelectChanged: (sel) {
                                   if (sel == true) {
                                     _selectedItemId = id;
-                                    _nameController.text = displayed['name'] ?? '';
-                                    _categoryController.text = displayed['category'] ?? '';
-                                    _quantityController.text = displayed['quantity']?.toString() ?? '';
-                                    _unitController.text = displayed['unit'] ?? '';
-                                    _supplierController.text = displayed['supplier'] ?? '';
-                                    _priceController.text = displayed['price']?.toString() ?? '';
+                                    _nameController.text =
+                                        displayed['name'] ?? '';
+                                    _categoryController.text =
+                                        displayed['category'] ?? '';
+                                    _quantityController.text =
+                                        displayed['quantity']?.toString() ?? '';
+                                    _unitController.text =
+                                        displayed['unit'] ?? '';
+                                    _supplierController.text =
+                                        displayed['supplier'] ?? '';
+                                    _priceController.text =
+                                        displayed['price'] is num
+                                        ? (displayed['price'] as num)
+                                              .toStringAsFixed(2)
+                                        : '0.00';
                                     setState(() {});
                                   }
                                 },
@@ -528,18 +752,39 @@ class _InventoryPageState extends State<InventoryPage>
                                           child: SingleChildScrollView(
                                             scrollDirection: Axis.horizontal,
                                             child: ConstrainedBox(
-                                              constraints: const BoxConstraints(minWidth: 700),
+                                              constraints: const BoxConstraints(
+                                                minWidth: 700,
+                                              ),
                                               child: DataTable(
-                                                headingRowColor: MaterialStateProperty.all(Colors.grey[200]),
-                                                border: TableBorder.all(color: Colors.grey.shade300),
+                                                headingRowColor:
+                                                    MaterialStateProperty.all(
+                                                      Colors.grey[200],
+                                                    ),
+                                                border: TableBorder.all(
+                                                  color: Colors.grey.shade300,
+                                                ),
                                                 columns: const [
-                                                  DataColumn(label: Text('Category')),
-                                                  DataColumn(label: Text('Name')),
-                                                  DataColumn(label: Text('Qty')),
-                                                  DataColumn(label: Text('Unit')),
-                                                  DataColumn(label: Text('Supplier')),
-                                                  DataColumn(label: Text('Price')),
-                                                  DataColumn(label: Text('Status')),
+                                                  DataColumn(
+                                                    label: Text('Category'),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text('Name'),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text('Qty'),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text('Unit'),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text('Supplier'),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text('Price/Unit'),
+                                                  ),
+                                                  DataColumn(
+                                                    label: Text('Status'),
+                                                  ),
                                                 ],
                                                 rows: dataRows,
                                               ),
@@ -556,7 +801,8 @@ class _InventoryPageState extends State<InventoryPage>
                                       width: 420,
                                       child: SingleChildScrollView(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
                                           children: [
                                             editPanel(),
                                             const SizedBox(height: 12),

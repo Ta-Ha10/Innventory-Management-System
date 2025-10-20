@@ -7,8 +7,9 @@ import '../component/colors.dart';
 
 class SideBar extends StatefulWidget {
   final void Function(String)? onCategorySelect; // 🔹 Callback to InventoryPage
+  final String currentPage; // Current page for highlighting
 
-  const SideBar({super.key, this.onCategorySelect});
+  const SideBar({super.key, this.onCategorySelect, this.currentPage = ''});
 
   @override
   State<SideBar> createState() => _SideBarState();
@@ -18,7 +19,6 @@ class _SideBarState extends State<SideBar> {
   String _currentTime = '';
   String _currentDate = '';
   Timer? _timer;
-  String _selectedMenu = "Dashboard";
 
   @override
   void initState() {
@@ -231,7 +231,7 @@ class _SideBarState extends State<SideBar> {
     String? routeName,
     String? category,
   }) {
-    final bool isSelected = _selectedMenu == label;
+    final bool isSelected = label == widget.currentPage;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -242,13 +242,14 @@ class _SideBarState extends State<SideBar> {
       ),
       child: InkWell(
         onTap: () {
-          setState(() {
-            _selectedMenu = label;
-          });
-
           // 🔹 If category callback exists, notify InventoryPage
           if (widget.onCategorySelect != null && category != null) {
             widget.onCategorySelect!(category);
+          }
+
+          // 🔹 Navigate between pages
+          if (routeName != null) {
+            Navigator.of(context).pushReplacementNamed(routeName);
           }
 
           // 🔹 Navigate between pages
