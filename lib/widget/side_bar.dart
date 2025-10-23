@@ -63,7 +63,6 @@ class _SideBarState extends State<SideBar> {
     return Container(
       width: sidebarWidth,
       color: Colors.grey[300],
-      // make sidebar fill available height so it appears full-length
       child: SizedBox(
         height: MediaQuery.of(context).size.height,
         child: SingleChildScrollView(
@@ -175,20 +174,12 @@ class _SideBarState extends State<SideBar> {
 
         // ===== Menu Buttons =====
         _buildMenuButton(Icons.dashboard, "Dashboard", routeName: '/dashboard'),
-        _buildMenuButton(
-          Icons.inventory,
-          "Inventory",
-          routeName: '/inventory',
-          category: "Fats / Oils",
-        ),
-        _buildMenuButton(
-          Icons.request_page,
-          "Request",
-          category: "Processed Items",
-        ),
+        _buildMenuButton(Icons.inventory, "Inventory", routeName: '/inventory',),
+        _buildMenuButton(Icons.request_page,"Request", routeName: '/RequestItemPage',),
         _buildMenuButton(
           Icons.people,
           "Supplier",
+          routeName: '/supplier',
           category: "Vegetables & Fruits",
         ),
 

@@ -1,17 +1,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+
+
+import 'package:rrms/screens/Request.dart';
 import 'firebase_options.dart';
 import 'screens/Inventory.dart';
 import 'screens/dashboard.dart';
+import 'screens/supplier.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   runApp(const MyApp());
 }
@@ -30,8 +32,16 @@ class MyApp extends StatelessWidget {
             page = DashboardPage();
             break;
           case '/inventory':
-          default:
             page = InventoryPage();
+            break;
+          case '/supplier':
+            page = SupplierPage();
+            break;
+          case '/RequestItemPage':
+            page = RequestItemPage();
+            break;
+          default:
+            page = DashboardPage();
             break;
         }
 
@@ -46,6 +56,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 /*
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -345,6 +356,402 @@ class _RawComponentsUploaderState extends State<RawComponentsUploader> {
                 ],
               );
             }).toList(),
+          );
+        },
+      ),
+    );
+  }
+}
+*/
+/*
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firebase_options.dart';
+import 'dart:math';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: SupplierUploaderPage(),
+  ));
+}
+
+class SupplierUploaderPage extends StatefulWidget {
+  const SupplierUploaderPage({super.key});
+
+  @override
+  State<SupplierUploaderPage> createState() => _SupplierUploaderPageState();
+}
+
+class _SupplierUploaderPageState extends State<SupplierUploaderPage> {
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  bool _isUploading = false;
+  final Random random = Random();
+
+  // ✅ Your full supplier list
+  final List<String> suppliers = [
+    'Supplier A', 'Supplier B', 'Supplier C', 'Supplier D', 'Supplier E',
+    'Supplier F', 'Supplier G', 'Local Farm', 'Supplier H', 'Supplier I',
+    'Supplier J', 'Supplier K', 'Supplier L', 'Supplier M', 'Supplier N',
+    'Supplier O', 'Supplier P', 'Supplier Q', 'Supplier R', 'Supplier S',
+    'Dairy Co.', 'Supplier T', 'Cheese Co.', 'Mill Co.', 'Supplier V',
+    'Supplier W', 'Brewery X', 'Farm LL', 'Supplier MM', 'Supplier OO',
+    'Supplier PP', 'Supplier RR', 'Supplier SS', 'Supplier TT', 'Supplier UU',
+    'Supplier VV', 'Supplier WW', 'Supplier XX', 'Supplier YY', 'Supplier ZZ',
+    'Supplier AAA', 'Supplier BBB', 'Roaster CCC', 'Supplier DDD',
+    'Supplier EEE', 'Supplier FFF', 'Supplier GGG', 'In-house', 'Supplier HHH'
+  ];
+
+  // Egyptian data samples
+  final List<String> egyptianCities = [
+    'Cairo', 'Giza', 'Alexandria', 'Mansoura', 'Tanta',
+    'Zagazig', 'Ismailia', 'Suez', 'Aswan', 'Fayoum'
+  ];
+
+  final List<String> egyptianStreets = [
+    'El Tahrir St.', 'Nile Corniche', 'October Bridge', 'Abdel Aziz St.',
+    'Mohandessin Main St.', 'Nasr City Blvd.', 'Dokki St.', 'Gamal Abdel Nasser St.'
+  ];
+
+  // Generate random Egyptian contact info
+  String _generatePhone() {
+    final prefixes = ['010', '011', '012', '015'];
+    final prefix = prefixes[random.nextInt(prefixes.length)];
+    final number = random.nextInt(90000000) + 10000000;
+    return '+20 $prefix $number';
+  }
+
+  String _generateEmail(String supplierName) {
+    final formatted = supplierName
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]'), '');
+    return '$formatted@egyptmail.com';
+  }
+
+  String _generateAddress() {
+    final street = egyptianStreets[random.nextInt(egyptianStreets.length)];
+    final city = egyptianCities[random.nextInt(egyptianCities.length)];
+    final building = random.nextInt(50) + 1;
+    return '$building $street, $city, Egypt';
+  }
+
+  Future<void> uploadSuppliers() async {
+    if (_isUploading) return;
+
+    setState(() => _isUploading = true);
+    try {
+      final batch = firestore.batch();
+
+      // Optional: clear previous data
+      final oldDocs = await firestore.collection('suppliers').get();
+      for (var doc in oldDocs.docs) {
+        batch.delete(doc.reference);
+      }
+
+      // Upload all suppliers
+      for (var supplier in suppliers) {
+        final docRef = firestore.collection('suppliers').doc();
+        batch.set(docRef, {
+          'name': supplier,
+          'contact': {
+            'phone': _generatePhone(),
+            'email': _generateEmail(supplier),
+            'address': _generateAddress(),
+          },
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      await batch.commit();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ All suppliers uploaded successfully!')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('❌ Upload failed: $e')),
+      );
+    } finally {
+      setState(() => _isUploading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xfff5f5f5),
+      appBar: AppBar(
+        title: const Text('Suppliers (Egypt Edition)'),
+        backgroundColor: Colors.green.shade800,
+        actions: [
+          TextButton.icon(
+            onPressed: _isUploading ? null : uploadSuppliers,
+            icon: const Icon(Icons.cloud_upload, color: Colors.white),
+            label: Text(
+              _isUploading ? 'Uploading...' : 'Upload All',
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: firestore.collection('suppliers').orderBy('name').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('❌ Error loading suppliers'));
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final docs = snapshot.data!.docs;
+          if (docs.isEmpty) {
+            return const Center(
+              child: Text(
+                'No suppliers found.\nTap "Upload All" to generate Egyptian supplier data.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingRowColor: MaterialStateProperty.all(Colors.green.shade100),
+              columns: const [
+                DataColumn(label: Text('Supplier Name')),
+                DataColumn(label: Text('Phone')),
+                DataColumn(label: Text('Email')),
+                DataColumn(label: Text('Address')),
+              ],
+              rows: docs.map((doc) {
+                final data = doc.data();
+                final contact = data['contact'] ?? {};
+                return DataRow(cells: [
+                  DataCell(Text(data['name'] ?? '')),
+                  DataCell(Text(contact['phone'] ?? '')),
+                  DataCell(Text(contact['email'] ?? '')),
+                  DataCell(Text(contact['address'] ?? '')),
+                ]);
+              }).toList(),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+*/
+/*
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'firebase_options.dart';
+import 'dart:math';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  runApp(const MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: SupplierUploaderPage(),
+  ));
+}
+
+class SupplierUploaderPage extends StatefulWidget {
+  const SupplierUploaderPage({super.key});
+
+  @override
+  State<SupplierUploaderPage> createState() => _SupplierUploaderPageState();
+}
+
+class _SupplierUploaderPageState extends State<SupplierUploaderPage> {
+  final FirebaseFirestore firestore = FirebaseFirestore.instance;
+  bool _isUploading = false;
+  final Random random = Random();
+
+  // ✅ Supplier list
+  final List<String> suppliers = [
+    'Supplier A', 'Supplier B', 'Supplier C', 'Supplier D', 'Supplier E',
+    'Supplier F', 'Supplier G', 'Local Farm', 'Supplier H', 'Supplier I',
+    'Supplier J', 'Supplier K', 'Supplier L', 'Supplier M', 'Supplier N',
+    'Supplier O', 'Supplier P', 'Supplier Q', 'Supplier R', 'Supplier S',
+    'Dairy Co.', 'Supplier T', 'Cheese Co.', 'Mill Co.', 'Supplier V',
+    'Supplier W', 'Brewery X', 'Farm LL', 'Supplier MM', 'Supplier OO',
+    'Supplier PP', 'Supplier RR', 'Supplier SS', 'Supplier TT', 'Supplier UU',
+    'Supplier VV', 'Supplier WW', 'Supplier XX', 'Supplier YY', 'Supplier ZZ',
+    'Supplier AAA', 'Supplier BBB', 'Roaster CCC', 'Supplier DDD',
+    'Supplier EEE', 'Supplier FFF', 'Supplier GGG', 'In-house', 'Supplier HHH'
+  ];
+
+  // ✅ Egyptian cities and streets
+  final List<String> egyptianCities = [
+    'Cairo', 'Giza', 'Alexandria', 'Mansoura', 'Tanta',
+    'Zagazig', 'Ismailia', 'Suez', 'Aswan', 'Fayoum'
+  ];
+
+  final List<String> egyptianStreets = [
+    'El Tahrir St.', 'Nile Corniche', 'October Bridge', 'Abdel Aziz St.',
+    'Mohandessin Main St.', 'Nasr City Blvd.', 'Dokki St.', 'Gamal Abdel Nasser St.'
+  ];
+
+  // ✅ List of possible items supplied
+  final List<String> itemPool = [
+    'Milk', 'Cheese', 'Yogurt', 'Butter', 'Beef', 'Chicken', 'Fish',
+    'Lamb', 'Flour', 'Sugar', 'Salt', 'Rice', 'Beans', 'Tomatoes',
+    'Onions', 'Garlic', 'Potatoes', 'Oil', 'Vinegar', 'Bread',
+    'Spices', 'Tea', 'Coffee', 'Juice', 'Soft Drinks', 'Beer',
+    'Pasta', 'Canned Goods', 'Olive Oil', 'Cheddar Cheese',
+    'Mozzarella', 'Cream', 'Eggs', 'Vegetables', 'Fruits', 'Ice Cream',
+    'Sauces', 'Honey', 'Herbs', 'Nuts', 'Cocoa', 'Water', 'Cereal',
+    'Coffee Beans', 'Wheat', 'Corn', 'Yeast', 'Baking Powder'
+  ];
+
+  // Generate random Egyptian contact info
+  String _generatePhone() {
+    final prefixes = ['010', '011', '012', '015'];
+    final prefix = prefixes[random.nextInt(prefixes.length)];
+    final number = random.nextInt(90000000) + 10000000;
+    return '+20 $prefix $number';
+  }
+
+  String _generateEmail(String supplierName) {
+    final formatted = supplierName
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]'), '');
+    return '$formatted@egyptmail.com';
+  }
+
+  String _generateAddress() {
+    final street = egyptianStreets[random.nextInt(egyptianStreets.length)];
+    final city = egyptianCities[random.nextInt(egyptianCities.length)];
+    final building = random.nextInt(50) + 1;
+    return '$building $street, $city, Egypt';
+  }
+
+  List<String> _generateSuppliedItems() {
+    int count = random.nextInt(4) + 2; // between 2 and 6 items
+    final shuffled = List<String>.from(itemPool)..shuffle(random);
+    return shuffled.take(count).toList();
+  }
+
+  Future<void> uploadSuppliers() async {
+    if (_isUploading) return;
+
+    setState(() => _isUploading = true);
+    try {
+      final batch = firestore.batch();
+
+      // Optional: clear previous data
+      final oldDocs = await firestore.collection('suppliers').get();
+      for (var doc in oldDocs.docs) {
+        batch.delete(doc.reference);
+      }
+
+      // Upload all suppliers
+      for (var supplier in suppliers) {
+        final docRef = firestore.collection('suppliers').doc();
+        batch.set(docRef, {
+          'name': supplier,
+          'contact': {
+            'phone': _generatePhone(),
+            'email': _generateEmail(supplier),
+            'address': _generateAddress(),
+          },
+          'suppliedItems': _generateSuppliedItems(),
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      await batch.commit();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('✅ All suppliers with items uploaded successfully!')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('❌ Upload failed: $e')),
+      );
+    } finally {
+      setState(() => _isUploading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xfff5f5f5),
+      appBar: AppBar(
+        title: const Text('Suppliers (Egypt + Supplied Items)'),
+        backgroundColor: Colors.green.shade800,
+        actions: [
+          TextButton.icon(
+            onPressed: _isUploading ? null : uploadSuppliers,
+            icon: const Icon(Icons.cloud_upload, color: Colors.white),
+            label: Text(
+              _isUploading ? 'Uploading...' : 'Upload All',
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: firestore.collection('suppliers').orderBy('name').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('❌ Error loading suppliers'));
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final docs = snapshot.data!.docs;
+          if (docs.isEmpty) {
+            return const Center(
+              child: Text(
+                'No suppliers found.\nTap "Upload All" to generate Egyptian supplier data with items.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+            );
+          }
+
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingRowColor: MaterialStateProperty.all(Colors.green.shade100),
+              columns: const [
+                DataColumn(label: Text('Supplier Name')),
+                DataColumn(label: Text('Phone')),
+                DataColumn(label: Text('Email')),
+                DataColumn(label: Text('Address')),
+                DataColumn(label: Text('Supplied Items')),
+              ],
+              rows: docs.map((doc) {
+                final data = doc.data();
+                final contact = data['contact'] ?? {};
+                final items = List<String>.from(data['suppliedItems'] ?? []);
+                return DataRow(cells: [
+                  DataCell(Text(data['name'] ?? '')),
+                  DataCell(Text(contact['phone'] ?? '')),
+                  DataCell(Text(contact['email'] ?? '')),
+                  DataCell(Text(contact['address'] ?? '')),
+                  DataCell(Text(items.join(', '))),
+                ]);
+              }).toList(),
+            ),
           );
         },
       ),
