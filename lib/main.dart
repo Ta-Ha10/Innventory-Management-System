@@ -1,7 +1,5 @@
-
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-
 
 import 'package:rrms/screens/Request.dart';
 import 'firebase_options.dart';
@@ -38,7 +36,7 @@ class MyApp extends StatelessWidget {
             page = SupplierPage();
             break;
           case '/RequestItemPage':
-            page = RequestPage();
+            page = RequestItemPage();
             break;
           default:
             page = DashboardPage();
@@ -93,7 +91,7 @@ class RawComponentsUploader extends StatefulWidget {
 class _RawComponentsUploaderState extends State<RawComponentsUploader> {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  // ✅ NEW: Full inventory list (matches your Dart list)
+  //  NEW: Full inventory list (matches your Dart list)
   final List<Map<String, dynamic>> inventory = [
     // Meat / Poultry / Seafood
     {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Beef (ground)', 'quantity': 30.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier A', 'price': '\$12.50/kg'},
@@ -201,13 +199,13 @@ class _RawComponentsUploaderState extends State<RawComponentsUploader> {
 
   bool _isUploading = false;
 
-  /// 🔥 Delete ALL existing documents, then upload new list
+  ///  Delete ALL existing documents, then upload new list
   Future<void> uploadData() async {
     if (_isUploading) return;
 
     setState(() => _isUploading = true);
     try {
-      // 🔴 STEP 1: Delete all existing documents
+      //  STEP 1: Delete all existing documents
       final existingDocs = await firestore.collection('raw_components').get();
       final deleteBatch = firestore.batch();
       for (var doc in existingDocs.docs) {
@@ -215,7 +213,7 @@ class _RawComponentsUploaderState extends State<RawComponentsUploader> {
       }
       await deleteBatch.commit();
 
-      // ✅ STEP 2: Upload new data
+      // STEP 2: Upload new data
       final uploadBatch = firestore.batch();
       for (final item in inventory) {
         final docRef = firestore.collection('raw_components').doc();
@@ -234,13 +232,13 @@ class _RawComponentsUploaderState extends State<RawComponentsUploader> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ Inventory updated successfully!')),
+          const SnackBar(content: Text(' Inventory updated successfully!')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ Update failed: $e')),
+          SnackBar(content: Text(' Update failed: $e')),
         );
       }
     } finally {
@@ -276,7 +274,7 @@ class _RawComponentsUploaderState extends State<RawComponentsUploader> {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('❌ Error loading data'));
+            return const Center(child: Text(' Error loading data'));
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -393,7 +391,6 @@ class _SupplierUploaderPageState extends State<SupplierUploaderPage> {
   bool _isUploading = false;
   final Random random = Random();
 
-  // ✅ Your full supplier list
   final List<String> suppliers = [
     'Supplier A', 'Supplier B', 'Supplier C', 'Supplier D', 'Supplier E',
     'Supplier F', 'Supplier G', 'Local Farm', 'Supplier H', 'Supplier I',
@@ -471,12 +468,12 @@ class _SupplierUploaderPageState extends State<SupplierUploaderPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ All suppliers uploaded successfully!')),
+          const SnackBar(content: Text('All suppliers uploaded successfully!')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Upload failed: $e')),
+        SnackBar(content: Text('Upload failed: $e')),
       );
     } finally {
       setState(() => _isUploading = false);
@@ -505,7 +502,7 @@ class _SupplierUploaderPageState extends State<SupplierUploaderPage> {
         stream: firestore.collection('suppliers').orderBy('name').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('❌ Error loading suppliers'));
+            return const Center(child: Text(' Error loading suppliers'));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -580,7 +577,7 @@ class _SupplierUploaderPageState extends State<SupplierUploaderPage> {
   bool _isUploading = false;
   final Random random = Random();
 
-  // ✅ Supplier list
+  // Supplier list
   final List<String> suppliers = [
     'Supplier A', 'Supplier B', 'Supplier C', 'Supplier D', 'Supplier E',
     'Supplier F', 'Supplier G', 'Local Farm', 'Supplier H', 'Supplier I',
@@ -594,7 +591,7 @@ class _SupplierUploaderPageState extends State<SupplierUploaderPage> {
     'Supplier EEE', 'Supplier FFF', 'Supplier GGG', 'In-house', 'Supplier HHH'
   ];
 
-  // ✅ Egyptian cities and streets
+  // Egyptian cities and streets
   final List<String> egyptianCities = [
     'Cairo', 'Giza', 'Alexandria', 'Mansoura', 'Tanta',
     'Zagazig', 'Ismailia', 'Suez', 'Aswan', 'Fayoum'
@@ -605,7 +602,7 @@ class _SupplierUploaderPageState extends State<SupplierUploaderPage> {
     'Mohandessin Main St.', 'Nasr City Blvd.', 'Dokki St.', 'Gamal Abdel Nasser St.'
   ];
 
-  // ✅ List of possible items supplied
+  //  List of possible items supplied
   final List<String> itemPool = [
     'Milk', 'Cheese', 'Yogurt', 'Butter', 'Beef', 'Chicken', 'Fish',
     'Lamb', 'Flour', 'Sugar', 'Salt', 'Rice', 'Beans', 'Tomatoes',
@@ -677,12 +674,12 @@ class _SupplierUploaderPageState extends State<SupplierUploaderPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('✅ All suppliers with items uploaded successfully!')),
+          const SnackBar(content: Text(' All suppliers with items uploaded successfully!')),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Upload failed: $e')),
+        SnackBar(content: Text('Upload failed: $e')),
       );
     } finally {
       setState(() => _isUploading = false);
@@ -711,7 +708,7 @@ class _SupplierUploaderPageState extends State<SupplierUploaderPage> {
         stream: firestore.collection('suppliers').orderBy('name').snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('❌ Error loading suppliers'));
+            return const Center(child: Text('Error loading suppliers'));
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -769,13 +766,13 @@ import 'firebase_options.dart'; // <-- make sure this file exists
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ✅ Initialize Firebase with options
+  // Initialize Firebase with options
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
   await KitchenRequestUploader.uploadAllData();
-  print('✅ Kitchen request document uploaded successfully.');
+  print(' Kitchen request document uploaded successfully.');
 }
 
 class KitchenRequestUploader {
@@ -849,9 +846,9 @@ class KitchenRequestUploader {
         'pending': pendingItems,
         'sent': sentItems,
       });
-      print('✅ Data uploaded successfully with realistic date differences.');
+      print(' Data uploaded successfully with realistic date differences.');
     } catch (e) {
-      print('❌ Error uploading data: $e');
+      print(' Error uploading data: $e');
     }
   }
 }
