@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 // foundation not used here
 import 'package:gap/gap.dart';
-
 import '../widget/side_bar.dart';
+import '../widget/top_bar.dart';
 
 class SupplierPage extends StatefulWidget {
   const SupplierPage({super.key});
@@ -15,6 +15,9 @@ class SupplierPage extends StatefulWidget {
 class _SupplierPageState extends State<SupplierPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  // control sidebar visibility like Dashboard
+  bool isSidebarVisible = true;
 
   // controllers for edit
   final TextEditingController _nameController = TextEditingController();
@@ -155,9 +158,10 @@ class _SupplierPageState extends State<SupplierPage> {
       ),
       body: Row(
         children: [
-          SizedBox(
-            width: sidebarWidth,
-            child: SideBar(currentPage: 'Supplier', onCategorySelect: (cat) {}),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: isSidebarVisible ? sidebarWidth : 0,
+            child: isSidebarVisible ? SideBar(currentPage: 'Supplier', onCategorySelect: (cat) {}) : const SizedBox.shrink(),
           ),
           Expanded(
             child: Padding(
@@ -166,8 +170,14 @@ class _SupplierPageState extends State<SupplierPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 8),
-                  const Text('Suppliers', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
+                  const Gap(70),
+                  AppTopBar(
+                    isSidebarVisible: isSidebarVisible,
+                    onToggle: () => setState(() => isSidebarVisible = !isSidebarVisible),
+                    title: 'Suppliers',
+                    iconColor: primaryColor,
+                  ),
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: 420,
                     child: TextField(

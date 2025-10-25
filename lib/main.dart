@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
             page = SupplierPage();
             break;
           case '/RequestItemPage':
-            page = RequestItemPage();
+            page = RequestPage();
             break;
           default:
             page = DashboardPage();
@@ -756,6 +756,103 @@ class _SupplierUploaderPageState extends State<SupplierUploaderPage> {
         },
       ),
     );
+  }
+}
+*/
+/*import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+// Import your Firebase configuration
+import 'firebase_options.dart'; // <-- make sure this file exists
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // ✅ Initialize Firebase with options
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  await KitchenRequestUploader.uploadAllData();
+  print('✅ Kitchen request document uploaded successfully.');
+}
+
+class KitchenRequestUploader {
+  static final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  static Future<void> uploadAllData() async {
+    final now = DateTime.now();
+    final todayStr = now.toIso8601String();
+
+    final List<Map<String, dynamic>> allItems = [
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Watermelon'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Pomegranate Seeds'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Sun-Dried Tomatoes'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Carrots'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Cucumber'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Spinach'},
+      {'category': 'Dairy', 'rawComponent': 'Cow’s Milk'},
+      {'category': 'Dairy', 'rawComponent': 'Plant-Based Milk'},
+      {'category': 'Dairy', 'rawComponent': 'Cream (heavy)'},
+      {'category': 'Dairy', 'rawComponent': 'Butter'},
+      {'category': 'Dairy', 'rawComponent': 'Mozzarella'},
+      {'category': 'Dairy', 'rawComponent': 'Cheddar'},
+      {'category': 'Dairy', 'rawComponent': 'Feta'},
+      {'category': 'Gluten-Containing', 'rawComponent': 'Soy Sauce'},
+      {'category': 'Gluten-Containing', 'rawComponent': 'Breadcrumbs'},
+      {'category': 'Gluten-Containing', 'rawComponent': 'Beer (for cooking)'},
+      {'category': 'Gluten-Containing', 'rawComponent': 'Oats (non-GF)'},
+      {'category': 'Egg-Based', 'rawComponent': 'Eggs'},
+      {'category': 'Egg-Based', 'rawComponent': 'Egg Whites'},
+      {'category': 'Fats / Oils', 'rawComponent': 'Olive Oil'},
+      {'category': 'Fats / Oils', 'rawComponent': 'Vegetable Oil'},
+      {'category': 'Fats / Oils', 'rawComponent': 'Butter'},
+      {'category': 'Fats / Oils', 'rawComponent': 'Coconut Oil'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Salt'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Black Pepper'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Paprika'},
+    ];
+
+    final int mid = allItems.length ~/ 2;
+
+    // Pending items
+    final pendingItems = allItems.sublist(0, mid).map((item) {
+      return {
+        'name': item['rawComponent'],
+        'category': item['category'],
+        'date': todayStr,
+        'status': 'pending',
+      };
+    }).toList();
+
+    // Sent items (requestDate < sentDate)
+    final sentItems = allItems.sublist(mid).map((item) {
+      final randomDays = (1 + DateTime.now().millisecondsSinceEpoch % 2);
+      final requestDate = now.subtract(Duration(days: randomDays + 1));
+      final sentDate = requestDate.add(Duration(days: randomDays));
+
+      return {
+        'name': item['rawComponent'],
+        'category': item['category'],
+        'requestDate': requestDate.toIso8601String(),
+        'sentDate': sentDate.toIso8601String(),
+        'sentQty': 3.0,
+        'status': 'sent',
+      };
+    }).toList();
+
+    try {
+      await firestore.collection('kitchen_requests').add({
+        'createdAt': FieldValue.serverTimestamp(),
+        'status': 'active',
+        'pending': pendingItems,
+        'sent': sentItems,
+      });
+      print('✅ Data uploaded successfully with realistic date differences.');
+    } catch (e) {
+      print('❌ Error uploading data: $e');
+    }
   }
 }
 */
