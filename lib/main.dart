@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 
@@ -94,108 +95,108 @@ class _RawComponentsUploaderState extends State<RawComponentsUploader> {
   //  NEW: Full inventory list (matches your Dart list)
   final List<Map<String, dynamic>> inventory = [
     // Meat / Poultry / Seafood
-    {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Beef (ground)', 'quantity': 30.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier A', 'price': '\$12.50/kg'},
-    {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Beef (steak)', 'quantity': 10.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier A', 'price': '\$14.00/kg'},
-    {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Chicken Breast', 'quantity': 40.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier B', 'price': '\$8.20/kg'},
-    {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Turkey Slices', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier C', 'price': '\$14.00/kg'},
-    {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Salami', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier D', 'price': '\$22.00/kg'},
-    {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Shrimp', 'quantity': 10.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier E', 'price': '\$18.00/kg'},
-    {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Salmon', 'quantity': 8.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier F', 'price': '\$24.00/kg'},
-    {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Bacon', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier G', 'price': '\$16.50/kg'},
+      {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Beef (ground)', 'quantity': 30.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier A', 'price': '\$12.50/kg'},
+      {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Beef (steak)', 'quantity': 10.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier A', 'price': '\$14.00/kg'},
+      {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Chicken Breast', 'quantity': 40.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier B', 'price': '\$8.20/kg'},
+      {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Turkey Slices', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier C', 'price': '\$14.00/kg'},
+      {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Salami', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier D', 'price': '\$22.00/kg'},
+      {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Shrimp', 'quantity': 10.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier E', 'price': '\$18.00/kg'},
+      {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Salmon', 'quantity': 8.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier F', 'price': '\$24.00/kg'},
+      {'category': 'Meat / Poultry / Seafood', 'rawComponent': 'Bacon', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier G', 'price': '\$16.50/kg'},
 
-    // Vegetables & Fruits
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Tomatoes', 'quantity': 23.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$2.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Onions', 'quantity': 9.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$1.20/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Garlic', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier H', 'price': '\$4.50/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Mushrooms', 'quantity': 9.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier I', 'price': '\$6.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Bell Peppers', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$3.50/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Zucchini', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$2.80/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Eggplant', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$3.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Potatoes', 'quantity': 23.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$0.90/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Lettuce', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$7.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Arugula (Rocca)', 'quantity': 3.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$8.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Cherry Tomatoes', 'quantity': 3.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$6.50/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Olives', 'quantity': 2.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier J', 'price': '\$10.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Watercress', 'quantity': 1.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$12.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Pineapple', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier K', 'price': '\$5.50/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Basil', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$15.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Parsley / Dill', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$10.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Lemon', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier L', 'price': '\$4.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Lime', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier L', 'price': '\$5.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Avocado', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier M', 'price': '\$6.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Mango', 'quantity': 4.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier N', 'price': '\$5.50/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Strawberry', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$12.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Blueberry', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier O', 'price': '\$18.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Raspberry', 'quantity': 1.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier O', 'price': '\$22.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Peach', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$4.50/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Kiwi', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier P', 'price': '\$6.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Orange', 'quantity': 10.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier Q', 'price': '\$2.50/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Watermelon', 'quantity': 8.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$2.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Pomegranate Seeds', 'quantity': 1.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier R', 'price': '\$30.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Sun-Dried Tomatoes', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier S', 'price': '\$20.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Carrots', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$1.00/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Cucumber', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$2.20/kg'},
-    {'category': 'Vegetables & Fruits', 'rawComponent': 'Spinach', 'quantity': 3.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$7.00/kg'},
+      // Vegetables & Fruits
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Tomatoes', 'quantity': 23.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$2.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Onions', 'quantity': 9.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$1.20/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Garlic', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier H', 'price': '\$4.50/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Mushrooms', 'quantity': 9.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier I', 'price': '\$6.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Bell Peppers', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$3.50/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Zucchini', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$2.80/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Eggplant', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$3.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Potatoes', 'quantity': 23.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$0.90/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Lettuce', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$7.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Arugula (Rocca)', 'quantity': 3.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$8.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Cherry Tomatoes', 'quantity': 3.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$6.50/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Olives', 'quantity': 2.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier J', 'price': '\$10.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Watercress', 'quantity': 1.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$12.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Pineapple', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier K', 'price': '\$5.50/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Basil', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$15.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Parsley / Dill', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$10.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Lemon', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier L', 'price': '\$4.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Lime', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier L', 'price': '\$5.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Avocado', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier M', 'price': '\$6.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Mango', 'quantity': 4.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier N', 'price': '\$5.50/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Strawberry', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$12.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Blueberry', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier O', 'price': '\$18.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Raspberry', 'quantity': 1.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier O', 'price': '\$22.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Peach', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$4.50/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Kiwi', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier P', 'price': '\$6.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Orange', 'quantity': 10.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier Q', 'price': '\$2.50/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Watermelon', 'quantity': 8.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$2.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Pomegranate Seeds', 'quantity': 1.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier R', 'price': '\$30.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Sun-Dried Tomatoes', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier S', 'price': '\$20.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Carrots', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$1.00/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Cucumber', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$2.20/kg'},
+      {'category': 'Vegetables & Fruits', 'rawComponent': 'Spinach', 'quantity': 3.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Local Farm', 'price': '\$7.00/kg'},
 
-    // Dairy
-    {'category': 'Dairy', 'rawComponent': 'Cow’s Milk', 'quantity': 45.0, 'unit': 'L', 'fillingWay': 'Bag (Bag-in-box)', 'supplier': 'Dairy Co.', 'price': '\$1.20/L'},
-    {'category': 'Dairy', 'rawComponent': 'Plant-Based Milk', 'quantity': 10.0, 'unit': 'L', 'fillingWay': 'Carton', 'supplier': 'Supplier T', 'price': '\$2.50/L'},
-    {'category': 'Dairy', 'rawComponent': 'Cream (heavy)', 'quantity': 7.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Dairy Co.', 'price': '\$4.00/L'},
-    {'category': 'Dairy', 'rawComponent': 'Butter', 'quantity': 3.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Dairy Co.', 'price': '\$8.00/kg'},
-    {'category': 'Dairy', 'rawComponent': 'Mozzarella', 'quantity': 8.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Cheese Co.', 'price': '\$10.00/kg'},
-    {'category': 'Dairy', 'rawComponent': 'Cheddar', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Cheese Co.', 'price': '\$12.00/kg'},
-    {'category': 'Dairy', 'rawComponent': 'Feta', 'quantity': 2.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Cheese Co.', 'price': '\$14.00/kg'},
-    {'category': 'Dairy', 'rawComponent': 'Parmesan', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Cheese Co.', 'price': '\$25.00/kg'},
-    {'category': 'Dairy', 'rawComponent': 'Yogurt', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Dairy Co.', 'price': '\$3.00/kg'},
-    {'category': 'Dairy', 'rawComponent': 'Mascarpone', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Cheese Co.', 'price': '\$18.00/kg'},
-    {'category': 'Dairy', 'rawComponent': 'Whipped Cream', 'quantity': 3.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Dairy Co.', 'price': '\$6.00/L'},
+      // Dairy
+      {'category': 'Dairy', 'rawComponent': 'Cow’s Milk', 'quantity': 45.0, 'unit': 'L', 'fillingWay': 'Bag (Bag-in-box)', 'supplier': 'Dairy Co.', 'price': '\$1.20/L'},
+      {'category': 'Dairy', 'rawComponent': 'Plant-Based Milk', 'quantity': 10.0, 'unit': 'L', 'fillingWay': 'Carton', 'supplier': 'Supplier T', 'price': '\$2.50/L'},
+      {'category': 'Dairy', 'rawComponent': 'Cream (heavy)', 'quantity': 7.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Dairy Co.', 'price': '\$4.00/L'},
+      {'category': 'Dairy', 'rawComponent': 'Butter', 'quantity': 3.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Dairy Co.', 'price': '\$8.00/kg'},
+      {'category': 'Dairy', 'rawComponent': 'Mozzarella', 'quantity': 8.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Cheese Co.', 'price': '\$10.00/kg'},
+      {'category': 'Dairy', 'rawComponent': 'Cheddar', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Cheese Co.', 'price': '\$12.00/kg'},
+      {'category': 'Dairy', 'rawComponent': 'Feta', 'quantity': 2.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Cheese Co.', 'price': '\$14.00/kg'},
+      {'category': 'Dairy', 'rawComponent': 'Parmesan', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Cheese Co.', 'price': '\$25.00/kg'},
+      {'category': 'Dairy', 'rawComponent': 'Yogurt', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Dairy Co.', 'price': '\$3.00/kg'},
+      {'category': 'Dairy', 'rawComponent': 'Mascarpone', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Cheese Co.', 'price': '\$18.00/kg'},
+      {'category': 'Dairy', 'rawComponent': 'Whipped Cream', 'quantity': 3.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Dairy Co.', 'price': '\$6.00/L'},
 
-    // Gluten-Containing
-    {'category': 'Gluten-Containing', 'rawComponent': 'Wheat Flour', 'quantity': 28.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Mill Co.', 'price': '\$1.00/kg'},
-    {'category': 'Gluten-Containing', 'rawComponent': 'Semolina Flour', 'quantity': 12.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Mill Co.', 'price': '\$1.80/kg'},
-    {'category': 'Gluten-Containing', 'rawComponent': 'Soy Sauce', 'quantity': 3.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier V', 'price': '\$5.00/L'},
-    {'category': 'Gluten-Containing', 'rawComponent': 'Breadcrumbs', 'quantity': 3.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier W', 'price': '\$6.00/kg'},
-    {'category': 'Gluten-Containing', 'rawComponent': 'Beer (for cooking)', 'quantity': 12.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Brewery X', 'price': '\$3.00/L'},
-    {'category': 'Gluten-Containing', 'rawComponent': 'Oats (non-GF)', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Mill Co.', 'price': '\$2.50/kg'},
+      // Gluten-Containing
+      {'category': 'Gluten-Containing', 'rawComponent': 'Wheat Flour', 'quantity': 28.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Mill Co.', 'price': '\$1.00/kg'},
+      {'category': 'Gluten-Containing', 'rawComponent': 'Semolina Flour', 'quantity': 12.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Mill Co.', 'price': '\$1.80/kg'},
+      {'category': 'Gluten-Containing', 'rawComponent': 'Soy Sauce', 'quantity': 3.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier V', 'price': '\$5.00/L'},
+      {'category': 'Gluten-Containing', 'rawComponent': 'Breadcrumbs', 'quantity': 3.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier W', 'price': '\$6.00/kg'},
+      {'category': 'Gluten-Containing', 'rawComponent': 'Beer (for cooking)', 'quantity': 12.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Brewery X', 'price': '\$3.00/L'},
+      {'category': 'Gluten-Containing', 'rawComponent': 'Oats (non-GF)', 'quantity': 3.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Mill Co.', 'price': '\$2.50/kg'},
 
-    // Egg-Based
-    {'category': 'Egg-Based', 'rawComponent': 'Eggs', 'quantity': 4.5, 'unit': 'kg', 'fillingWay': 'Carton', 'supplier': 'Farm LL', 'price': '\$6.00/kg'},
-    {'category': 'Egg-Based', 'rawComponent': 'Egg Whites', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Carton', 'supplier': 'Supplier MM', 'price': '\$8.00/kg'},
+      // Egg-Based
+      {'category': 'Egg-Based', 'rawComponent': 'Eggs', 'quantity': 4.5, 'unit': 'kg', 'fillingWay': 'Carton', 'supplier': 'Farm LL', 'price': '\$6.00/kg'},
+      {'category': 'Egg-Based', 'rawComponent': 'Egg Whites', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Carton', 'supplier': 'Supplier MM', 'price': '\$8.00/kg'},
 
-    // Fats / Oils
-    {'category': 'Fats / Oils', 'rawComponent': 'Olive Oil', 'quantity': 8.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier OO', 'price': '\$10.00/L'},
-    {'category': 'Fats / Oils', 'rawComponent': 'Vegetable Oil', 'quantity': 20.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier PP', 'price': '\$2.50/L'},
-    {'category': 'Fats / Oils', 'rawComponent': 'Butter', 'quantity': 3.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Dairy Co.', 'price': '\$8.00/kg'},
-    {'category': 'Fats / Oils', 'rawComponent': 'Coconut Oil', 'quantity': 5.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier RR', 'price': '\$12.00/L'},
+      // Fats / Oils
+      {'category': 'Fats / Oils', 'rawComponent': 'Olive Oil', 'quantity': 8.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier OO', 'price': '\$10.00/L'},
+      {'category': 'Fats / Oils', 'rawComponent': 'Vegetable Oil', 'quantity': 20.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier PP', 'price': '\$2.50/L'},
+      {'category': 'Fats / Oils', 'rawComponent': 'Butter', 'quantity': 3.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Dairy Co.', 'price': '\$8.00/kg'},
+      {'category': 'Fats / Oils', 'rawComponent': 'Coconut Oil', 'quantity': 5.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier RR', 'price': '\$12.00/L'},
 
-    // Spices / Seasonings
-    {'category': 'Spices / Seasonings', 'rawComponent': 'Salt', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier SS', 'price': '\$1.00/kg'},
-    {'category': 'Spices / Seasonings', 'rawComponent': 'Black Pepper', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier TT', 'price': '\$20.00/kg'},
-    {'category': 'Spices / Seasonings', 'rawComponent': 'Paprika', 'quantity': 1.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier UU', 'price': '\$15.00/kg'},
-    {'category': 'Spices / Seasonings', 'rawComponent': 'Oregano', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier VV', 'price': '\$25.00/kg'},
-    {'category': 'Spices / Seasonings', 'rawComponent': 'Basil (dried)', 'quantity': 1.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier VV', 'price': '\$28.00/kg'},
-    {'category': 'Spices / Seasonings', 'rawComponent': 'Chili Flakes', 'quantity': 1.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier WW', 'price': '\$18.00/kg'},
-    {'category': 'Spices / Seasonings', 'rawComponent': 'Garlic Powder', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier XX', 'price': '\$12.00/kg'},
-    {'category': 'Spices / Seasonings', 'rawComponent': 'Onion Powder', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier XX', 'price': '\$10.00/kg'},
-    {'category': 'Spices / Seasonings', 'rawComponent': 'Mustard', 'quantity': 3.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier YY', 'price': '\$5.00/L'},
-    {'category': 'Spices / Seasonings', 'rawComponent': 'Balsamic Vinegar', 'quantity': 4.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier ZZ', 'price': '\$8.00/L'},
-    {'category': 'Spices / Seasonings', 'rawComponent': 'Lemon Juice (bottled)', 'quantity': 5.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier AAA', 'price': '\$6.00/L'},
-    {'category': 'Spices / Seasonings', 'rawComponent': 'Worcestershire Sauce', 'quantity': 2.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier BBB', 'price': '\$7.00/L'},
+      // Spices / Seasonings
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Salt', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier SS', 'price': '\$1.00/kg'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Black Pepper', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier TT', 'price': '\$20.00/kg'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Paprika', 'quantity': 1.5, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier UU', 'price': '\$15.00/kg'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Oregano', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier VV', 'price': '\$25.00/kg'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Basil (dried)', 'quantity': 1.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier VV', 'price': '\$28.00/kg'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Chili Flakes', 'quantity': 1.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier WW', 'price': '\$18.00/kg'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Garlic Powder', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier XX', 'price': '\$12.00/kg'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Onion Powder', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier XX', 'price': '\$10.00/kg'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Mustard', 'quantity': 3.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier YY', 'price': '\$5.00/L'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Balsamic Vinegar', 'quantity': 4.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier ZZ', 'price': '\$8.00/L'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Lemon Juice (bottled)', 'quantity': 5.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier AAA', 'price': '\$6.00/L'},
+      {'category': 'Spices / Seasonings', 'rawComponent': 'Worcestershire Sauce', 'quantity': 2.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier BBB', 'price': '\$7.00/L'},
 
-    // Beverages
-    {'category': 'Beverages', 'rawComponent': 'Coffee Beans', 'quantity': 10.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Roaster CCC', 'price': '\$20.00/kg'},
-    {'category': 'Beverages', 'rawComponent': 'Matcha Powder', 'quantity': 1.0, 'unit': 'kg', 'fillingWay': 'Tin', 'supplier': 'Supplier DDD', 'price': '\$80.00/kg'},
-    {'category': 'Beverages', 'rawComponent': 'Tea Leaves', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier EEE', 'price': '\$30.00/kg'},
-    {'category': 'Beverages', 'rawComponent': 'Carbonated Water', 'quantity': 50.0, 'unit': 'L', 'fillingWay': 'Keg', 'supplier': 'Supplier FFF', 'price': '\$0.50/L'},
-    {'category': 'Beverages', 'rawComponent': 'Fruit Juices (fresh)', 'quantity': 30.0, 'unit': 'L', 'fillingWay': 'Jug', 'supplier': 'Local Farm', 'price': '\$4.00/L'},
-    {'category': 'Beverages', 'rawComponent': 'Flavored Syrups', 'quantity': 10.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier GGG', 'price': '\$12.00/L'},
-    {'category': 'Beverages', 'rawComponent': 'Ice Cubes', 'quantity': 100.0, 'unit': 'kg', 'fillingWay': '—', 'supplier': 'In-house', 'price': '\$0.10/kg'},
-    {'category': 'Beverages', 'rawComponent': 'Condensed Milk', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Can', 'supplier': 'Dairy Co.', 'price': '\$5.00/kg'},
-    {'category': 'Beverages', 'rawComponent': 'Evaporated Milk', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Can', 'supplier': 'Dairy Co.', 'price': '\$4.00/kg'},
-    {'category': 'Beverages', 'rawComponent': 'Almond Milk', 'quantity': 10.0, 'unit': 'L', 'fillingWay': 'Carton', 'supplier': 'Supplier T', 'price': '\$2.50/L'},
-    {'category': 'Beverages', 'rawComponent': 'Oat Milk', 'quantity': 10.0, 'unit': 'L', 'fillingWay': 'Carton', 'supplier': 'Supplier T', 'price': '\$2.80/L'},
-    {'category': 'Beverages', 'rawComponent': 'Red Food Coloring', 'quantity': 0.5, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier HHH', 'price': '\$20.00/L'},
-  ];
+      // Beverages
+      {'category': 'Beverages', 'rawComponent': 'Coffee Beans', 'quantity': 10.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Roaster CCC', 'price': '\$20.00/kg'},
+      {'category': 'Beverages', 'rawComponent': 'Matcha Powder', 'quantity': 1.0, 'unit': 'kg', 'fillingWay': 'Tin', 'supplier': 'Supplier DDD', 'price': '\$80.00/kg'},
+      {'category': 'Beverages', 'rawComponent': 'Tea Leaves', 'quantity': 2.0, 'unit': 'kg', 'fillingWay': 'Bag', 'supplier': 'Supplier EEE', 'price': '\$30.00/kg'},
+      {'category': 'Beverages', 'rawComponent': 'Carbonated Water', 'quantity': 50.0, 'unit': 'L', 'fillingWay': 'Keg', 'supplier': 'Supplier FFF', 'price': '\$0.50/L'},
+      {'category': 'Beverages', 'rawComponent': 'Fruit Juices (fresh)', 'quantity': 30.0, 'unit': 'L', 'fillingWay': 'Jug', 'supplier': 'Local Farm', 'price': '\$4.00/L'},
+      {'category': 'Beverages', 'rawComponent': 'Flavored Syrups', 'quantity': 10.0, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier GGG', 'price': '\$12.00/L'},
+      {'category': 'Beverages', 'rawComponent': 'Ice Cubes', 'quantity': 100.0, 'unit': 'kg', 'fillingWay': '—', 'supplier': 'In-house', 'price': '\$0.10/kg'},
+      {'category': 'Beverages', 'rawComponent': 'Condensed Milk', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Can', 'supplier': 'Dairy Co.', 'price': '\$5.00/kg'},
+      {'category': 'Beverages', 'rawComponent': 'Evaporated Milk', 'quantity': 5.0, 'unit': 'kg', 'fillingWay': 'Can', 'supplier': 'Dairy Co.', 'price': '\$4.00/kg'},
+      {'category': 'Beverages', 'rawComponent': 'Almond Milk', 'quantity': 10.0, 'unit': 'L', 'fillingWay': 'Carton', 'supplier': 'Supplier T', 'price': '\$2.50/L'},
+      {'category': 'Beverages', 'rawComponent': 'Oat Milk', 'quantity': 10.0, 'unit': 'L', 'fillingWay': 'Carton', 'supplier': 'Supplier T', 'price': '\$2.80/L'},
+      {'category': 'Beverages', 'rawComponent': 'Red Food Coloring', 'quantity': 0.5, 'unit': 'L', 'fillingWay': 'Bottle', 'supplier': 'Supplier HHH', 'price': '\$20.00/L'},
+    ];
 
   bool _isUploading = false;
 
@@ -849,6 +850,268 @@ class KitchenRequestUploader {
       print(' Data uploaded successfully with realistic date differences.');
     } catch (e) {
       print(' Error uploading data: $e');
+    }
+  }
+}
+*/
+/*
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+
+import 'firebase_options.dart'; // Make sure this file exists and is properly configured
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  await KitchenRequestUploader.uploadAllData();
+  print('✅ Kitchen request document uploaded successfully.');
+}
+
+class KitchenRequestUploader {
+  static final FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+  static Future<void> uploadAllData() async {
+    final now = DateTime.now();
+    final todayStr = now.toIso8601String();
+
+    // Full dataset
+    final List<Map<String, dynamic>> allItems = [
+      {
+        'category': 'Meat / Poultry / Seafood',
+        'rawComponent': 'Beef (ground)',
+        'quantity': 30.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Supplier A',
+        'price': '\$12.50/kg',
+      },
+      {
+        'category': 'Meat / Poultry / Seafood',
+        'rawComponent': 'Beef (steak)',
+        'quantity': 10.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Supplier A',
+        'price': '\$14.00/kg',
+      },
+      {
+        'category': 'Meat / Poultry / Seafood',
+        'rawComponent': 'Chicken Breast',
+        'quantity': 40.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Supplier B',
+        'price': '\$8.20/kg',
+      },
+      {
+        'category': 'Meat / Poultry / Seafood',
+        'rawComponent': 'Turkey Slices',
+        'quantity': 5.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Supplier C',
+        'price': '\$14.00/kg',
+      },
+      {
+        'category': 'Meat / Poultry / Seafood',
+        'rawComponent': 'Salami',
+        'quantity': 3.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Supplier D',
+        'price': '\$22.00/kg',
+      },
+      {
+        'category': 'Meat / Poultry / Seafood',
+        'rawComponent': 'Shrimp',
+        'quantity': 10.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Supplier E',
+        'price': '\$18.00/kg',
+      },
+      {
+        'category': 'Meat / Poultry / Seafood',
+        'rawComponent': 'Salmon',
+        'quantity': 8.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Supplier F',
+        'price': '\$24.00/kg',
+      },
+      {
+        'category': 'Meat / Poultry / Seafood',
+        'rawComponent': 'Bacon',
+        'quantity': 5.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Supplier G',
+        'price': '\$16.50/kg',
+      },
+      // --- Vegetables & Fruits ---
+      {
+        'category': 'Vegetables & Fruits',
+        'rawComponent': 'Tomatoes',
+        'quantity': 23.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Local Farm',
+        'price': '\$2.00/kg',
+      },
+      {
+        'category': 'Vegetables & Fruits',
+        'rawComponent': 'Onions',
+        'quantity': 9.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Local Farm',
+        'price': '\$1.20/kg',
+      },
+      {
+        'category': 'Vegetables & Fruits',
+        'rawComponent': 'Garlic',
+        'quantity': 2.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Supplier H',
+        'price': '\$4.50/kg',
+      },
+      {
+        'category': 'Vegetables & Fruits',
+        'rawComponent': 'Mushrooms',
+        'quantity': 9.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Supplier I',
+        'price': '\$6.00/kg',
+      },
+      {
+        'category': 'Vegetables & Fruits',
+        'rawComponent': 'Bell Peppers',
+        'quantity': 5.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Local Farm',
+        'price': '\$3.50/kg',
+      },
+      {
+        'category': 'Vegetables & Fruits',
+        'rawComponent': 'Zucchini',
+        'quantity': 5.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Local Farm',
+        'price': '\$2.80/kg',
+      },
+      {
+        'category': 'Vegetables & Fruits',
+        'rawComponent': 'Eggplant',
+        'quantity': 5.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Local Farm',
+        'price': '\$3.00/kg',
+      },
+      {
+        'category': 'Vegetables & Fruits',
+        'rawComponent': 'Potatoes',
+        'quantity': 23.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Local Farm',
+        'price': '\$0.90/kg',
+      },
+      {
+        'category': 'Vegetables & Fruits',
+        'rawComponent': 'Lettuce',
+        'quantity': 5.0,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Local Farm',
+        'price': '\$7.00/kg',
+      },
+      {
+        'category': 'Vegetables & Fruits',
+        'rawComponent': 'Arugula (Rocca)',
+        'quantity': 3.5,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Local Farm',
+        'price': '\$8.00/kg',
+      },
+      {
+        'category': 'Vegetables & Fruits',
+        'rawComponent': 'Cherry Tomatoes',
+        'quantity': 3.5,
+        'unit': 'kg',
+        'fillingWay': 'Bag',
+        'supplier': 'Local Farm',
+        'price': '\$6.50/kg',
+      },
+      // ... (keep all other categories and items as-is from your list)
+      {
+        'category': 'Beverages',
+        'rawComponent': 'Red Food Coloring',
+        'quantity': 0.5,
+        'unit': 'L',
+        'fillingWay': 'Bottle',
+        'supplier': 'Supplier HHH',
+        'price': '\$20.00/L',
+      },
+    ];
+
+    // Divide dataset equally
+    final int mid = allItems.length ~/ 2;
+
+    // Pending items (current date)
+    final pendingItems = allItems.sublist(0, mid).map((item) {
+      return {
+        'name': item['rawComponent'],
+        'category': item['category'],
+        'quantity': item['quantity'],
+        'unit': item['unit'],
+        'fillingWay': item['fillingWay'],
+        'supplier': item['supplier'],
+        'price': item['price'],
+        'date': todayStr,
+        'status': 'pending',
+      };
+    }).toList();
+
+    // Sent items (with requestDate < sentDate)
+    final sentItems = allItems.sublist(mid).map((item) {
+      final randomDays = (1 + DateTime.now().millisecondsSinceEpoch % 3);
+      final requestDate = now.subtract(Duration(days: randomDays + 1));
+      final sentDate = requestDate.add(Duration(days: randomDays));
+
+      return {
+        'name': item['rawComponent'],
+        'category': item['category'],
+        'quantity': item['quantity'],
+        'unit': item['unit'],
+        'fillingWay': item['fillingWay'],
+        'supplier': item['supplier'],
+        'price': item['price'],
+        'requestDate': requestDate.toIso8601String(),
+        'sentDate': sentDate.toIso8601String(),
+        'sentQty': 3.0,
+        'status': 'sent',
+      };
+    }).toList();
+
+    // Upload to Firestore
+    try {
+      await firestore.collection('kitchen_requests').add({
+        'createdAt': FieldValue.serverTimestamp(),
+        'status': 'active',
+        'pending': pendingItems,
+        'sent': sentItems,
+      });
+      print('✅ Data uploaded successfully with realistic date differences.');
+    } catch (e) {
+      print('❌ Error uploading data: $e');
     }
   }
 }
