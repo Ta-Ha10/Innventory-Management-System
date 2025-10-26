@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:gap/gap.dart';
 import 'package:rrms/widget/side_bar.dart';
 import 'package:rrms/component/colors.dart';
 
@@ -24,6 +25,116 @@ class _RequestItemPageState extends State<RequestItemPage> {
     } catch (_) {
       return iso.toString();
     }
+  }
+
+  // Filters
+  DateTime? _filterExactDate; // matches year-month-day
+  DateTime? _filterMonthYear; // matches year-month
+
+  Future<void> _pickExactDate() async {
+    final d = await showDatePicker(
+      context: context,
+      initialDate: _filterExactDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (d != null) setState(() {
+      // exact date is exclusive with month filter
+      _filterExactDate = d;
+      _filterMonthYear = null;
+    });
+  }
+
+  Future<void> _pickMonth() async {
+    // Open a month-only picker dialog (year + month) instead of a full calendar.
+    final months = const [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+
+    final now = DateTime.now();
+    int selectedYear = _filterMonthYear?.year ?? now.year;
+    int selectedMonth = _filterMonthYear?.month ?? now.month;
+
+    final picked = await showDialog<DateTime?>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(builder: (context, setStateDialog) {
+          // Build a list of years (2000..current+5)
+          final currentYear = DateTime.now().year;
+          final years = List<int>.generate(currentYear + 6 - 2000, (i) => 2000 + i);
+
+          return AlertDialog(
+            title: const Text('Select month and year', style: TextStyle(color: Colors.black)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButton<int>(
+                        value: selectedYear,
+                        isExpanded: true,
+                        onChanged: (v) {
+                          if (v == null) return;
+                          setStateDialog(() => selectedYear = v);
+                        },
+                        items: years.map((y) => DropdownMenuItem(value: y, child: Text(y.toString()))).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: List.generate(12, (i) {
+                    final m = i + 1;
+                    final isSelected = m == selectedMonth;
+                    return ChoiceChip(
+                      label: Text(months[i]),
+                      selected: isSelected,
+                      onSelected: (_) => setStateDialog(() => selectedMonth = m),
+                    );
+                  }),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                style: ButtonStyle(
+                  foregroundColor: MaterialStateProperty.all(Colors.black),
+                  overlayColor: MaterialStateProperty.all(Colors.black12),
+                ),
+                onPressed: () => Navigator.of(context).pop(null),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(AppColors.se),
+                  foregroundColor: MaterialStateProperty.all(Colors.black),
+                  overlayColor: MaterialStateProperty.all(Colors.black12),
+                ),
+                onPressed: () => Navigator.of(context).pop(DateTime(selectedYear, selectedMonth)),
+                child: const Text('Apply'),
+              ),
+            ],
+          );
+        });
+      },
+    );
+
+    if (picked != null) setState(() {
+      // Make month selection exclusive: clear exact date
+      _filterExactDate = null;
+      _filterMonthYear = DateTime(picked.year, picked.month);
+    });
+  }
+
+  void _clearFilters() {
+    setState(() {
+      _filterExactDate = null;
+      _filterMonthYear = null;
+    });
   }
 
   Future<void> _handleSend(Map<String, dynamic> pendingItem, String parentDocId) async {
@@ -178,12 +289,15 @@ class _RequestItemPageState extends State<RequestItemPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "REQUEST ITEM",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black87,
+                Gap(24),
+                Center(
+                  child: const Text(
+                    "REQUEST ITEM",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.se,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -192,7 +306,7 @@ class _RequestItemPageState extends State<RequestItemPage> {
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.1),
@@ -222,16 +336,49 @@ class _RequestItemPageState extends State<RequestItemPage> {
                         final List<Map<String, dynamic>> sentRows = [];
 
                         for (final p in pending) {
+                          final dateStr = p['date'] ?? p['requestDate'];
+                          DateTime? dt;
+                          try {
+                            dt = dateStr != null ? DateTime.parse(dateStr.toString()) : null;
+                          } catch (_) {
+                            dt = null;
+                          }
+
+                          // Apply filters: exact date takes precedence over month filter
+                          if (_filterExactDate != null) {
+                            if (dt == null) continue;
+                            if (!(dt.year == _filterExactDate!.year && dt.month == _filterExactDate!.month && dt.day == _filterExactDate!.day)) continue;
+                          } else if (_filterMonthYear != null) {
+                            if (dt == null) continue;
+                            if (!(dt.year == _filterMonthYear!.year && dt.month == _filterMonthYear!.month)) continue;
+                          }
+
                           pendingRows.add({
                             'name': p['name'] ?? p['product'] ?? '',
                             'category': p['category'] ?? '',
-                            'requestDate': p['date'] ?? p['requestDate'] ?? null,
+                            'requestDate': dateStr ?? null,
                             'parentDoc': doc.id,
                             'rawMap': p,
                           });
                         }
 
                         for (final s in sent) {
+                          final sentDateStr = s['sentDate'] ?? s['requestDate'];
+                          DateTime? sdt;
+                          try {
+                            sdt = sentDateStr != null ? DateTime.parse(sentDateStr.toString()) : null;
+                          } catch (_) {
+                            sdt = null;
+                          }
+
+                          if (_filterExactDate != null) {
+                            if (sdt == null) continue;
+                            if (!(sdt.year == _filterExactDate!.year && sdt.month == _filterExactDate!.month && sdt.day == _filterExactDate!.day)) continue;
+                          } else if (_filterMonthYear != null) {
+                            if (sdt == null) continue;
+                            if (!(sdt.year == _filterMonthYear!.year && sdt.month == _filterMonthYear!.month)) continue;
+                          }
+
                           sentRows.add({
                             'name': s['name'] ?? s['product'] ?? '',
                             'category': s['category'] ?? '',
@@ -245,74 +392,117 @@ class _RequestItemPageState extends State<RequestItemPage> {
 
                         return SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
-                          child: Row(
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Pending table
-                              ConstrainedBox(
-                                constraints: const BoxConstraints(minWidth: 400),
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: DataTable(
-                                    headingRowColor: MaterialStateProperty.all(const Color(0xfff6f6f6)),
-                                    border: TableBorder.all(color: Colors.grey.shade300),
-                                    columns: const [
-                                      DataColumn(label: Text('Name')),
-                                      DataColumn(label: Text('Category')),
-                                      DataColumn(label: Text('Request Date')),
-                                      DataColumn(label: Text('Status')),
-                                      DataColumn(label: Text('Action')),
+                              // Filter controls
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Row(
+                                  children: [
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.se),
+                                      onPressed: _pickExactDate,
+                                      child: Text(_filterExactDate == null ? 'Filter by date' : 'Date: ${_filterExactDate!.year}-${_filterExactDate!.month.toString().padLeft(2,'0')}-${_filterExactDate!.day.toString().padLeft(2,'0')}' , style: TextStyle(color: AppColors.pr)),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.se),
+                                      onPressed: _pickMonth,
+                                      child: Text(_filterMonthYear == null ? 'Filter by month' : 'Month: ${_filterMonthYear!.year}-${_filterMonthYear!.month.toString().padLeft(2,'0')}' ,style: TextStyle(color: AppColors.pr))
+                        ),
+                                    if (_filterExactDate != null || _filterMonthYear != null) ...[
+                                      const SizedBox(width: 8),
+                                      OutlinedButton(
+                                        onPressed: _clearFilters,
+                                        child: const Text('Clear filters' , style: TextStyle(color: AppColors.pr))  ,
+                                      ),
                                     ],
-                                    rows: pendingRows.map((item) {
-                                      return DataRow(cells: [
-                                        DataCell(Text(item['name'] ?? '')),
-                                        DataCell(Text(item['category'] ?? '')),
-                                        DataCell(Text(_formatDate(item['requestDate']))),
-                                        DataCell(const CircleAvatar(radius: 8, backgroundColor: Colors.red)),
-                                        DataCell(ElevatedButton(
-                              style: ElevatedButton.styleFrom(backgroundColor: AppColors.se, foregroundColor: Colors.white),
-                              onPressed: () => _handleSend(item, item['parentDoc']),
-                              child: const Text('Send'),
-                                        )),
-                                      ]);
-                                    }).toList(),
-                                  ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(width: 24),
-                              // Sent table
-                              ConstrainedBox(
-                                constraints: const BoxConstraints(minWidth: 500),
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: DataTable(
-                                    headingRowColor: MaterialStateProperty.all(const Color(0xfff6f6f6)),
-                                    border: TableBorder.all(color: Colors.grey.shade300),
-                                    columns: const [
-                                      DataColumn(label: Text('Name')),
-                                      DataColumn(label: Text('Category')),
-                                      DataColumn(label: Text('Request Date')),
-                                      DataColumn(label: Text('Sent Date')),
-                                      DataColumn(label: Text('Qty')),
-                                      DataColumn(label: Text('Status')),
-                                      DataColumn(label: Text('Action')),
-                                    ],
-                                    rows: sentRows.map((item) {
-                                      return DataRow(cells: [
-                                        DataCell(Text(item['name'] ?? '')),
-                                        DataCell(Text(item['category'] ?? '')),
-                                        DataCell(Text(_formatDate(item['requestDate']))),
-                                        DataCell(Text(_formatDate(item['sentDate']))),
-                                        DataCell(Text(item['qty']?.toString() ?? '-')),
-                                        DataCell(const CircleAvatar(radius: 8, backgroundColor: Colors.green)),
-                                        DataCell(IconButton(
-                                          onPressed: () => _deleteSent(item, item['parentDoc']),
-                                          icon: const Icon(Icons.delete),
-                                          color: AppColors.se,
-                                        )),
-                                      ]);
-                                    }).toList(),
-                                  ),
+                              const SizedBox(height: 8),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Pending table
+                                    ConstrainedBox(
+                                      constraints: const BoxConstraints(minWidth: 300),
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: DataTable(
+                                          dataRowHeight: 40,
+                                          headingRowHeight: 36,
+                                          headingRowColor: MaterialStateProperty.all(const Color(0xfff6f6f6)),
+                                          border: TableBorder.all(color: Colors.grey.shade300),
+                                          columns: const [
+                                            DataColumn(label: Text('Name')),
+                                            DataColumn(label: Text('Category')),
+                                            DataColumn(label: Text('Request Date')),
+                                            DataColumn(label: Text('Status')),
+                                            DataColumn(label: Text('Action')),
+                                          ],
+                                          rows: pendingRows.map((item) {
+                                            return DataRow(cells: [
+                                              DataCell(Text(item['name'] ?? '')),
+                                              DataCell(Text(item['category'] ?? '')),
+                                              DataCell(Text(_formatDate(item['requestDate']))),
+                                              DataCell(const CircleAvatar(radius: 6, backgroundColor: Colors.red)),
+                                              DataCell(ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                    backgroundColor: AppColors.se,
+                                                    foregroundColor: Colors.white,
+                                                    minimumSize: const Size(64, 32),
+                                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6)),
+                                                onPressed: () => _handleSend(item, item['parentDoc']),
+                                                child: const Text('Send', style: TextStyle(fontSize: 13)),
+                                              )),
+                                            ]);
+                                          }).toList(),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 24),
+                                    // Sent table
+                                    ConstrainedBox(
+                                      constraints: const BoxConstraints(minWidth: 420),
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: DataTable(
+                                          dataRowHeight: 40,
+                                          headingRowHeight: 36,
+                                          headingRowColor: MaterialStateProperty.all(const Color(0xfff6f6f6)),
+                                          border: TableBorder.all(color: Colors.grey.shade300),
+                                          columns: const [
+                                            DataColumn(label: Text('Name')),
+                                            DataColumn(label: Text('Category')),
+                                            DataColumn(label: Text('Request Date')),
+                                            DataColumn(label: Text('Sent Date')),
+                                            DataColumn(label: Text('Qty')),
+                                            DataColumn(label: Text('Status')),
+                                            DataColumn(label: Text('Action')),
+                                          ],
+                                          rows: sentRows.map((item) {
+                                            return DataRow(cells: [
+                                              DataCell(Text(item['name'] ?? '')),
+                                              DataCell(Text(item['category'] ?? '')),
+                                              DataCell(Text(_formatDate(item['requestDate']))),
+                                              DataCell(Text(_formatDate(item['sentDate']))),
+                                              DataCell(Text(item['qty']?.toString() ?? '-')),
+                                              DataCell(const CircleAvatar(radius: 6, backgroundColor: Colors.green)),
+                                              DataCell(IconButton(
+                                                onPressed: () => _deleteSent(item, item['parentDoc']),
+                                                icon: const Icon(Icons.delete),
+                                                color: AppColors.se,
+                                              )),
+                                            ]);
+                                          }).toList(),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],

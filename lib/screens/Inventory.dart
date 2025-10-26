@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:gap/gap.dart';
 import 'package:rrms/component/colors.dart';
 import 'dart:math' show max, min, Random;
+import 'dart:async';
 
 import '../widget/side_bar.dart';
 import '../widget/top_bar.dart';
@@ -31,6 +32,7 @@ class _InventoryPageState extends State<InventoryPage>
 
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  Timer? _searchDebounce;
 
   String? _selectedItemId;
   final TextEditingController _nameController = TextEditingController();
@@ -141,6 +143,7 @@ class _InventoryPageState extends State<InventoryPage>
     _addUnitController.dispose();
     _addSupplierController.dispose();
     _addPriceController.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -221,8 +224,14 @@ class _InventoryPageState extends State<InventoryPage>
   }
 
   void _onSearchChanged(String v) {
-    setState(() {
-      _searchQuery = v.toLowerCase();
+    // Debounce the search to avoid frequent rebuilds while the user types
+    _searchDebounce?.cancel();
+    final pending = v;
+    _searchDebounce = Timer(const Duration(milliseconds: 250), () {
+      if (!mounted) return;
+      setState(() {
+        _searchQuery = pending.toLowerCase();
+      });
     });
   }
 
@@ -619,7 +628,9 @@ class _InventoryPageState extends State<InventoryPage>
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _categoryController.text.isEmpty ? null : _categoryController.text,
+              value: (_categoryController.text.isNotEmpty && categories.value.where((t) => t.toLowerCase() != 'all').any((t) => t == _categoryController.text))
+                  ? _categoryController.text
+                  : null,
               items: categories.value.where((t) => t.toLowerCase() != 'all').map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
               onChanged: (v) => _categoryController.text = v ?? '',
               decoration: const InputDecoration(labelText: 'Category *'),
@@ -734,9 +745,9 @@ class _InventoryPageState extends State<InventoryPage>
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _addCategoryController.text.isEmpty
-                  ? null
-                  : _addCategoryController.text,
+              value: (_addCategoryController.text.isNotEmpty && categories.value.where((t) => t.toLowerCase() != 'all').any((t) => t == _addCategoryController.text))
+                  ? _addCategoryController.text
+                  : null,
               items: categories.value
                   .where((t) => t.toLowerCase() != 'all')
                   .map((t) => DropdownMenuItem(value: t, child: Text(t)))

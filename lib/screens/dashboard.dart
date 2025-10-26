@@ -83,7 +83,19 @@ class _DashboardPageState extends State<DashboardPage> {
                           };
                         }).toList();
 
-                        final lowStock = items.where((it) => (it['quantity'] as double) <= lowStockThreshold).toList();
+                        // Show items with quantity between 0 and lowStockThreshold (inclusive)
+                        final lowStock = items.where((it) {
+                          final q = (it['quantity'] as double);
+                          return q >= 0.0 && q <= lowStockThreshold;
+                        }).toList();
+                        // Sort ascending by quantity, then by name to make display deterministic
+                        lowStock.sort((a, b) {
+                          final qa = (a['quantity'] as double);
+                          final qb = (b['quantity'] as double);
+                          final cmp = qa.compareTo(qb);
+                          if (cmp != 0) return cmp;
+                          return (a['name'] ?? '').toString().compareTo((b['name'] ?? '').toString());
+                        });
 
                         final totalStockValue = items.fold<double>(0.0, (acc, it) => acc + ((it['quantity'] as double) * (it['price'] as double)));
 
@@ -157,7 +169,7 @@ class _DashboardPageState extends State<DashboardPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Low Stock Items",
+            "Low Stock Items (0-5)",
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 10),
@@ -336,7 +348,13 @@ class _DashboardPageState extends State<DashboardPage> {
                                 decoration: BoxDecoration(color: Colors.green[300], borderRadius: BorderRadius.circular(6)),
                               ),
                               const SizedBox(height: 6),
-                              Text(name, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11)),
+                              // Fixed-height name area so the quantity label below is aligned for every bar
+                              SizedBox(
+                                height: 34, // accommodates up to 2 lines comfortably
+                                child: Center(
+                                  child: Text(name, textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11)),
+                                ),
+                              ),
                               const SizedBox(height: 4),
                               Text(qty.toStringAsFixed(0), style: const TextStyle(fontSize: 11)),
                             ],

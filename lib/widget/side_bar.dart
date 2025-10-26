@@ -183,19 +183,19 @@ class _SideBarState extends State<SideBar> {
           category: "Vegetables & Fruits",
         ),
 
-        const Gap(20),
+        //const Gap(20),
 
         if (!isCollapsed)
           // Use errorBuilder to avoid crashing if the asset is missing or fails to load.
           Image.asset(
             'assets/logo/Image.png',
-            width: 140,
-            height: 140,
+            width: 300,
+            height: 300,
             errorBuilder: (context, error, stackTrace) =>
                 const SizedBox(width: 140, height: 140),
           ),
 
-        const Gap(20),
+        const Gap(10),
 
         Padding(
           padding: const EdgeInsets.only(bottom: 20),
