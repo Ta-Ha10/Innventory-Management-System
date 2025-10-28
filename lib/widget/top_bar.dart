@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rrms/component/colors.dart';
 
 /// Reusable top bar used across dashboard, inventory, request and supplier pages.
 /// Shows a left icon to toggle sidebar and a centered title. The parent page
@@ -31,7 +32,7 @@ class AppTopBar extends StatelessWidget {
         const Spacer(),
         Text(
           title,
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900 , color : AppColors.se),
         ),
         const Spacer(),
       ],

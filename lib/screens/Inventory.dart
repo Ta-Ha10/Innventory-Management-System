@@ -51,6 +51,20 @@ class _InventoryPageState extends State<InventoryPage>
 
   final Map<String, Map<String, dynamic>> _localDocs = {};
 
+  // Validation error messages for edit panel
+  String? _editNameError;
+  String? _editQuantityError;
+  String? _editUnitError;
+  String? _editPriceError;
+  String? _editSupplierError;
+
+  // Validation error messages for add panel
+  String? _addNameError;
+  String? _addQuantityError;
+  String? _addUnitError;
+  String? _addPriceError;
+  String? _addSupplierError;
+
   // Controls visibility of the Add panel (opened by FAB)
   bool _showAddPanel = false;
   // Controls whether the FAB's expanded options are visible
@@ -83,11 +97,28 @@ class _InventoryPageState extends State<InventoryPage>
       }
     });
 
-    _unitController.addListener(() => setState(() {}));
-    _addUnitController.addListener(() => setState(() {}));
+  _unitController.addListener(_onUnitControllerChanged);
+  _addUnitController.addListener(_onAddUnitControllerChanged);
     categories.addListener(_onCategoriesChanged);
 
     _loadSuppliers();
+  }
+
+  void _onUnitControllerChanged() {
+    // avoid calling setState during a build — schedule for next frame
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {});
+    });
+  }
+
+  void _onAddUnitControllerChanged() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {});
+    });
   }
 
   Future<void> _loadSuppliers() async {
@@ -124,8 +155,8 @@ class _InventoryPageState extends State<InventoryPage>
 
   @override
   void dispose() {
-    _unitController.removeListener(() => setState(() {}));
-    _addUnitController.removeListener(() => setState(() {}));
+    _unitController.removeListener(_onUnitControllerChanged);
+    _addUnitController.removeListener(_onAddUnitControllerChanged);
     categories.removeListener(_onCategoriesChanged);
     try {
       _tabController.dispose();
@@ -235,22 +266,20 @@ class _InventoryPageState extends State<InventoryPage>
     });
   }
 
-  int _parseQuantity(dynamic raw) {
-    if (raw == null) return 0;
-    if (raw is int) return raw;
-    if (raw is double) return raw.round();
+  double _parseQuantity(dynamic raw) {
+    if (raw == null) return 0.0;
+    if (raw is int) return raw.toDouble();
+    if (raw is double) return raw;
     final s = raw.toString();
     final doubleVal = double.tryParse(s);
-    if (doubleVal != null) return doubleVal.round();
+    if (doubleVal != null) return doubleVal;
     final intVal = int.tryParse(s);
-    return intVal ?? 0;
+    return intVal?.toDouble() ?? 0.0;
   }
 
   Future<void> _saveItem() async {
     if (_selectedItemId == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('No item selected')));
+      if (kDebugMode) print('No item selected');
       return;
     }
 
@@ -261,27 +290,50 @@ class _InventoryPageState extends State<InventoryPage>
     final priceText = _priceController.text.trim();
     final price = double.tryParse(priceText);
 
-    if (name.isEmpty ||
-        category.isEmpty ||
-        supplier.isEmpty ||
-        unit.isEmpty ||
-        price == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+    // Clear previous errors
+    setState(() {
+      _editNameError = null;
+      _editQuantityError = null;
+      _editUnitError = null;
+      _editPriceError = null;
+      _editSupplierError = null;
+    });
+
+    // Basic validations
+    if (name.isEmpty) {
+      setState(() { _editNameError = 'Name is required'; });
+      return;
+    }
+    // allow letters and spaces only
+      if (!RegExp(r'^[A-Za-z ]+$').hasMatch(name)) {
+      setState(() { _editNameError = 'Use English letters and spaces only'; });
+      return;
+    }
+    if (category.isEmpty) {
+      if (kDebugMode) print('Category is required');
+      return;
+    }
+    if (supplier.isEmpty) {
+      setState(() { _editSupplierError = 'Supplier is required'; });
+      return;
+    }
+    if (unit.isEmpty || !(unit == 'kg' || unit == 'liter')) {
+      setState(() { _editUnitError = 'Unit must be kg or liter'; });
+      return;
+    }
+    if (price == null) {
+      setState(() { _editPriceError = 'Enter a valid price'; });
       return;
     }
 
     final quantityText = _quantityController.text.trim();
-    int? quantity;
+    double? quantity;
     if (quantityText.isNotEmpty) {
       final doubleVal = double.tryParse(quantityText);
       if (doubleVal != null) {
-        quantity = doubleVal.round();
+        quantity = doubleVal;
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Invalid quantity')));
+        setState(() { _editQuantityError = 'Invalid quantity'; });
         return;
       }
     }
@@ -290,8 +342,7 @@ class _InventoryPageState extends State<InventoryPage>
       'name': name,
       'category': category,
       'quantity':
-          quantity ??
-          _parseQuantity(_localDocs[_selectedItemId!]?['quantity'] ?? 0),
+          quantity ?? _parseQuantity(_localDocs[_selectedItemId!]?['quantity'] ?? 0.0),
       'unit': unit,
       'supplier': supplier,
       'price': price,
@@ -309,14 +360,10 @@ class _InventoryPageState extends State<InventoryPage>
 
       await _saveSupplier(supplier, name);
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Item saved')));
+      if (kDebugMode) print('Item saved');
       _clearSelection();
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+      if (kDebugMode) print('Save failed: $e');
     }
   }
 
@@ -328,27 +375,48 @@ class _InventoryPageState extends State<InventoryPage>
     final priceText = _addPriceController.text.trim();
     final price = double.tryParse(priceText);
 
-    if (name.isEmpty ||
-        category.isEmpty ||
-        supplier.isEmpty ||
-        unit.isEmpty ||
-        price == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please fill all fields')));
+    // Clear previous errors
+    setState(() {
+      _addNameError = null;
+      _addQuantityError = null;
+      _addUnitError = null;
+      _addPriceError = null;
+      _addSupplierError = null;
+    });
+
+    if (name.isEmpty) {
+      setState(() { _addNameError = 'Name is required'; });
+      return;
+    }
+    if (!RegExp(r'^[A-Za-z ]+$').hasMatch(name)) {
+      setState(() { _addNameError = 'Use English letters and spaces only'; });
+      return;
+    }
+    if (category.isEmpty) {
+      if (kDebugMode) print('Category is required');
+      return;
+    }
+    if (supplier.isEmpty) {
+      setState(() { _addSupplierError = 'Supplier is required'; });
+      return;
+    }
+    if (unit.isEmpty || !(unit == 'kg' || unit == 'liter')) {
+      setState(() { _addUnitError = 'Unit must be kg or liter'; });
+      return;
+    }
+    if (price == null) {
+      setState(() { _addPriceError = 'Enter a valid price'; });
       return;
     }
 
     final quantityText = _addQuantityController.text.trim();
-    int quantity = 0;
+    double quantity = 0.0;
     if (quantityText.isNotEmpty) {
       final doubleVal = double.tryParse(quantityText);
       if (doubleVal != null) {
-        quantity = doubleVal.round();
+        quantity = doubleVal;
       } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Invalid quantity')));
+        setState(() { _addQuantityError = 'Invalid quantity'; });
         return;
       }
     }
@@ -380,16 +448,12 @@ class _InventoryPageState extends State<InventoryPage>
 
       await _saveSupplier(supplier, name);
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Item added')));
+      if (kDebugMode) print('Item added');
       _clearAddForm();
     } catch (e) {
       _localDocs.remove(tempId);
       setState(() {});
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Add failed: $e')));
+      if (kDebugMode) print('Add failed: $e');
     }
   }
 
@@ -452,23 +516,24 @@ class _InventoryPageState extends State<InventoryPage>
             ),
             actions: [
               TextButton(onPressed: () => Navigator.of(context).pop(null), child: const Text('Cancel')),
-              TextButton(
+                  TextButton(
                 onPressed: () {
                   final text = qtyController.text.trim();
                   final v = double.tryParse(text);
                   if (v == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid number')));
+                    // show a blocking dialog for validation message instead of a snackbar
+                    showDialog(context: context, builder: (ctx) => AlertDialog(title: const Text('Invalid input'), content: const Text('Enter a valid number'), actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK'))]));
                     return;
                   }
 
                   if (!sameSupplierAndPrice) {
                     if (selectedSupplier.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Select a supplier')));
+                      showDialog(context: context, builder: (ctx) => AlertDialog(title: const Text('Missing supplier'), content: const Text('Select a supplier'), actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK'))]));
                       return;
                     }
                     final pText = priceController.text.trim();
                     if (pText.isEmpty || double.tryParse(pText) == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Enter a valid price')));
+                      showDialog(context: context, builder: (ctx) => AlertDialog(title: const Text('Invalid price'), content: const Text('Enter a valid price'), actions: [TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK'))]));
                       return;
                     }
                   }
@@ -476,7 +541,7 @@ class _InventoryPageState extends State<InventoryPage>
                   // return true to indicate submit
                   Navigator.of(context).pop(true);
                 },
-                child: const Text('Add'),
+                child: const Text('Add' ,style: TextStyle(color: AppColors.pr)),
               ),
             ],
           );
@@ -486,14 +551,14 @@ class _InventoryPageState extends State<InventoryPage>
 
     if (result != true) return;
 
-    // parse quantity
-    final qtyText = qtyController.text.trim();
-    final qtyDouble = double.tryParse(qtyText);
-    if (qtyDouble == null) return;
-    final added = qtyDouble.round();
+  // parse quantity
+  final qtyText = qtyController.text.trim();
+  final qtyDouble = double.tryParse(qtyText);
+  if (qtyDouble == null) return;
+  final double added = qtyDouble;
 
-    final current = _parseQuantity(item['quantity']);
-    final newQty = current + added;
+  final current = _parseQuantity(item['quantity']);
+  final newQty = current + added;
 
     // prepare history data
     final oldPrice = (item['price'] != null) ? double.tryParse(item['price'].toString()) : null;
@@ -506,7 +571,7 @@ class _InventoryPageState extends State<InventoryPage>
     setState(() {});
 
     if (id.startsWith('local_')) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quantity updated (local)')));
+      if (kDebugMode) print('Quantity updated (local)');
       return;
     }
 
@@ -517,7 +582,8 @@ class _InventoryPageState extends State<InventoryPage>
         if (newPrice != null) updates['price'] = newPrice;
       }
 
-      await FirebaseFirestore.instance.collection('raw_components').doc(id).update(updates);
+
+  await FirebaseFirestore.instance.collection('raw_components').doc(id).update(updates);
 
       // write inventory history
       await FirebaseFirestore.instance.collection('inventory_history').add({
@@ -532,12 +598,12 @@ class _InventoryPageState extends State<InventoryPage>
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Quantity updated')));
+      if (kDebugMode) print('Quantity updated');
     } catch (e) {
       // revert local change on failure
       _localDocs.remove(id);
       setState(() {});
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to update quantity: $e')));
+      if (kDebugMode) print('Failed to update quantity: $e');
     }
   }
 
@@ -574,26 +640,48 @@ class _InventoryPageState extends State<InventoryPage>
     TextEditingController controller, {
     bool isAdd = false,
   }) {
-    // Show a dropdown populated from _supplierCache (loaded from Firestore).
-    final items = _supplierCache
-        .map((s) => DropdownMenuItem<String>(value: s, child: Text(s)))
-        .toList();
-    final value =
-        controller.text.isNotEmpty && _supplierCache.contains(controller.text)
-        ? controller.text
-        : null;
-    return DropdownButtonFormField<String>(
-      value: value,
-      items: items,
-      onChanged: (v) {
-        controller.text = v ?? '';
+    // Autocomplete text field that filters _supplierCache as the user types.
+    return Autocomplete<String>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        final query = textEditingValue.text.toLowerCase();
+        if (query.isEmpty) return const Iterable<String>.empty();
+        return _supplierCache.where((s) => s.toLowerCase().startsWith(query));
       },
-      decoration: InputDecoration(
-        labelText: 'Supplier *',
-        border: const OutlineInputBorder(),
-      ),
-      validator: (v) =>
-          (v == null || v.isEmpty) ? 'Supplier is required' : null,
+      displayStringForOption: (opt) => opt,
+      fieldViewBuilder: (context, textController, focusNode, onFieldSubmitted) {
+        // Synchronously sync the internal textController from the external
+        // controller only when the field is NOT focused to avoid clobbering
+        // user input while they're typing. Use synchronous copy so we don't
+        // schedule async callbacks that may run later and overwrite user input.
+        if (!focusNode.hasFocus && textController.text != controller.text) {
+          textController.text = controller.text;
+          textController.selection = TextSelection.fromPosition(TextPosition(offset: textController.text.length));
+        }
+
+        return TextField(
+          controller: textController,
+          focusNode: focusNode,
+          decoration: InputDecoration(
+            labelText: 'Supplier *',
+            border: const OutlineInputBorder(),
+          ),
+          onChanged: (val) {
+            // Keep the external controller in sync by copying the full
+            // TextEditingValue (preserves selection) from the internal
+            // textController. This avoids resetting the cursor/selection.
+            controller.value = textController.value;
+            if (isAdd) {
+              if (_addSupplierError != null) setState(() { _addSupplierError = null; });
+            } else {
+              if (_editSupplierError != null) setState(() { _editSupplierError = null; });
+            }
+          },
+        );
+      },
+      onSelected: (selection) {
+        // Preserve selection/cursor by setting a TextEditingValue.
+        controller.value = TextEditingValue(text: selection, selection: TextSelection.collapsed(offset: selection.length));
+      },
     );
   }
 
@@ -625,7 +713,12 @@ class _InventoryPageState extends State<InventoryPage>
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Name *'),
+              onChanged: (_) => setState(() { _editNameError = null; }),
             ),
+            if (_editNameError != null) ...[
+              const SizedBox(height: 6),
+              Text(_editNameError!, style: const TextStyle(color: Colors.red)),
+            ],
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: (_categoryController.text.isNotEmpty && categories.value.where((t) => t.toLowerCase() != 'all').any((t) => t == _categoryController.text))
@@ -652,15 +745,37 @@ class _InventoryPageState extends State<InventoryPage>
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: TextField(
-                    controller: _unitController,
+                  child: DropdownButtonFormField<String>(
+                    // only set value if it matches one of the available items to avoid
+                    // DropdownButton assertion failures when the controller contains
+                    // an unexpected string
+                    value: ['kg', 'liter'].contains(_unitController.text) ? _unitController.text : null,
+                    items: ['kg', 'liter']
+                        .map((u) => DropdownMenuItem(value: u, child: Text(u)))
+                        .toList(),
+                    onChanged: (v) {
+                      _unitController.text = v ?? '';
+                      setState(() { _editUnitError = null; });
+                    },
                     decoration: const InputDecoration(labelText: 'Unit *'),
                   ),
                 ),
               ],
             ),
+            if (_editQuantityError != null) ...[
+              const SizedBox(height: 6),
+              Text(_editQuantityError!, style: const TextStyle(color: Colors.red)),
+            ],
+            if (_editUnitError != null) ...[
+              const SizedBox(height: 6),
+              Text(_editUnitError!, style: const TextStyle(color: Colors.red)),
+            ],
             const SizedBox(height: 8),
             _buildSupplierField(_supplierController),
+            if (_editSupplierError != null) ...[
+              const SizedBox(height: 6),
+              Text(_editSupplierError!, style: const TextStyle(color: Colors.red)),
+            ],
             const SizedBox(height: 8),
             ValueListenableBuilder(
               valueListenable: _unitController,
@@ -682,6 +797,10 @@ class _InventoryPageState extends State<InventoryPage>
                 );
               },
             ),
+            if (_editPriceError != null) ...[
+              const SizedBox(height: 6),
+              Text(_editPriceError!, style: const TextStyle(color: Colors.red)),
+            ],
             const SizedBox(height: 12),
             Row(
               children: [
@@ -690,8 +809,8 @@ class _InventoryPageState extends State<InventoryPage>
                     backgroundColor: secondaryColor,
                   ),
                   onPressed: _saveItem,
-                  icon: const Icon(Icons.save),
-                  label: const Text('Save'),
+                  icon: const Icon(Icons.save , color : AppColors.pr),
+                  label: const Text('Save' , style : TextStyle(color : AppColors.pr)),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton(
@@ -704,8 +823,8 @@ class _InventoryPageState extends State<InventoryPage>
                 const SizedBox(width: 8),
                 OutlinedButton.icon(
                   onPressed: () => _showHistoryDialog(_selectedItemId),
-                  icon: const Icon(Icons.history),
-                  label: const Text('History'),
+                  icon: const Icon(Icons.history ,color : AppColors.pr),
+                  label: const Text('History' , style: TextStyle(color : AppColors.pr),),
                 ),
               ],
             ),
@@ -742,7 +861,12 @@ class _InventoryPageState extends State<InventoryPage>
             TextField(
               controller: _addNameController,
               decoration: const InputDecoration(labelText: 'Name *'),
+              onChanged: (_) => setState(() { _addNameError = null; }),
             ),
+            if (_addNameError != null) ...[
+              const SizedBox(height: 6),
+              Text(_addNameError!, style: const TextStyle(color: Colors.red)),
+            ],
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               value: (_addCategoryController.text.isNotEmpty && categories.value.where((t) => t.toLowerCase() != 'all').any((t) => t == _addCategoryController.text))
@@ -772,15 +896,29 @@ class _InventoryPageState extends State<InventoryPage>
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: TextField(
-                    controller: _addUnitController,
+                  child: DropdownButtonFormField<String>(
+                    value: ['kg', 'liter'].contains(_addUnitController.text) ? _addUnitController.text : null,
+                    items: ['kg', 'liter'].map((u) => DropdownMenuItem(value: u, child: Text(u))).toList(),
+                    onChanged: (v) { _addUnitController.text = v ?? ''; setState(() { _addUnitError = null; }); },
                     decoration: const InputDecoration(labelText: 'Unit *'),
                   ),
                 ),
               ],
             ),
+            if (_addQuantityError != null) ...[
+              const SizedBox(height: 6),
+              Text(_addQuantityError!, style: const TextStyle(color: Colors.red)),
+            ],
+            if (_addUnitError != null) ...[
+              const SizedBox(height: 6),
+              Text(_addUnitError!, style: const TextStyle(color: Colors.red)),
+            ],
             const SizedBox(height: 8),
             _buildSupplierField(_addSupplierController, isAdd: true),
+            if (_addSupplierError != null) ...[
+              const SizedBox(height: 6),
+              Text(_addSupplierError!, style: const TextStyle(color: Colors.red)),
+            ],
             const SizedBox(height: 8),
             ValueListenableBuilder(
               valueListenable: _addUnitController,
@@ -802,13 +940,17 @@ class _InventoryPageState extends State<InventoryPage>
                 );
               },
             ),
+            if (_addPriceError != null) ...[
+              const SizedBox(height: 6),
+              Text(_addPriceError!, style: const TextStyle(color: Colors.red)),
+            ],
             const SizedBox(height: 12),
             Row(
               children: [
                 ElevatedButton.icon(
                   onPressed: _saveNewItem,
-                  icon: const Icon(Icons.add),
-                  label: const Text('Add'),
+                  icon: const Icon(Icons.add , color : AppColors.pr),
+                  label: const Text('Add' , style : TextStyle(color : AppColors.pr) ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: secondaryColor,
                   ),
@@ -816,7 +958,7 @@ class _InventoryPageState extends State<InventoryPage>
                 const SizedBox(width: 8),
                 OutlinedButton(
                   onPressed: _clearAddForm,
-                  child: const Text('Clear'),
+                  child: const Text('Clear' , style: TextStyle(color : AppColors.pr) ),
                 ),
               ],
             ),
@@ -1160,16 +1302,17 @@ class _InventoryPageState extends State<InventoryPage>
                                         }).toList();
                                       }
 
+                                      // sort descending by quantity so table shows highest qty first
+                                      filteredDocs.sort((a, b) => _parseQuantity(b['quantity']).compareTo(_parseQuantity(a['quantity'])));
                                       if (filteredDocs.isEmpty) {
                                         return const Center(
                                           child: Text('No items found.'),
                                         );
                                       }
-
                                       final dataRows = filteredDocs.map((item) {
                                         final id = item['id']?.toString();
                                         final displayed = {...item};
-                                        final quantityInt = _parseQuantity(
+                                        final quantityVal = _parseQuantity(
                                           displayed['quantity'],
                                         );
                                         return DataRow(
@@ -1205,9 +1348,9 @@ class _InventoryPageState extends State<InventoryPage>
                                               CircleAvatar(
                                                 radius: 8,
                                                 backgroundColor:
-                                                    quantityInt <= 5
+                                                    quantityVal <= 5.0
                                                     ? Colors.red
-                                                    : (quantityInt <= 10
+                                                    : (quantityVal <= 10.0
                                                           ? Colors.yellow[700]!
                                                           : Colors.green),
                                               ),

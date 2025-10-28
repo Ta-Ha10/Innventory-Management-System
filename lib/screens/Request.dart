@@ -203,7 +203,7 @@ class _RequestItemPageState extends State<RequestItemPage> {
                   ),
                   ElevatedButton(
                     style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(AppColors.sc),
+                      backgroundColor: MaterialStateProperty.all(AppColors.se),
                       foregroundColor: MaterialStateProperty.all(Colors.black),
                       overlayColor: MaterialStateProperty.all(Colors.black12),
                     ),
@@ -289,7 +289,7 @@ class _RequestItemPageState extends State<RequestItemPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Gap(24),
+                Gap(70),
                 Center(
                   child: const Text(
                     "REQUEST ITEM",

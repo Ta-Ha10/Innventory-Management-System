@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/inventory',
+      initialRoute: '/dashboard',
       onGenerateRoute: (settings) {
         Widget page;
         switch (settings.name) {
@@ -55,7 +55,6 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
 /*
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -854,6 +853,10 @@ class KitchenRequestUploader {
   }
 }
 */
+
+
+
+
 /*
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -1050,7 +1053,7 @@ class KitchenRequestUploader {
         'supplier': 'Local Farm',
         'price': '\$6.50/kg',
       },
-      // ... (keep all other categories and items as-is from your list)
+
       {
         'category': 'Beverages',
         'rawComponent': 'Red Food Coloring',
@@ -1062,7 +1065,6 @@ class KitchenRequestUploader {
       },
     ];
 
-    // Divide dataset equally
     final int mid = allItems.length ~/ 2;
 
     // Pending items (current date)
